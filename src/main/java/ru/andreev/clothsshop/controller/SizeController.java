@@ -1,6 +1,5 @@
 package ru.andreev.clothsshop.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.andreev.clothsshop.model.Size;
 import ru.andreev.clothsshop.service.SizeService;
@@ -10,9 +9,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/sizes")
 public class SizeController {
+    private final SizeService sizeService;
 
-    @Autowired
-    private SizeService sizeService;
+    public SizeController(SizeService sizeService) {
+        this.sizeService = sizeService;
+    }
 
     // Получить все размеры
     @GetMapping

@@ -1,6 +1,5 @@
 package ru.andreev.clothsshop.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.andreev.clothsshop.model.Category;
 import ru.andreev.clothsshop.service.CategoryService;
@@ -11,8 +10,11 @@ import java.util.List;
 @RequestMapping("/api/categories")
 public class CategoryController {
 
-    @Autowired
-    private CategoryService categoryService;
+    private final CategoryService categoryService;
+
+    public CategoryController(CategoryService categoryService) {
+        this.categoryService = categoryService;
+    }
 
     // Получить все категории
     @GetMapping

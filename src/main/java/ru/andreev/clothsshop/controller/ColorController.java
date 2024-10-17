@@ -1,6 +1,5 @@
 package ru.andreev.clothsshop.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.*;
 import ru.andreev.clothsshop.model.Color;
 import ru.andreev.clothsshop.service.ColorService;
@@ -10,9 +9,11 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/colors")
 public class ColorController {
+    private final ColorService colorService;
 
-    @Autowired
-    private ColorService colorService;
+    public ColorController(ColorService colorService) {
+        this.colorService = colorService;
+    }
 
     // Получить все цвета
     @GetMapping

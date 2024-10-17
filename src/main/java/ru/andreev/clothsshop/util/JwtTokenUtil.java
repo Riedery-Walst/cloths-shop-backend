@@ -20,17 +20,17 @@ public class JwtTokenUtil {
     private long jwtExpirationMs;
 
     // Генерация JWT токена
-    public String generateToken(String username) {
+    public String generateToken(String email) {
         return Jwts.builder()
-                .setSubject(username)
+                .setSubject(email)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
                 .signWith(key, SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    // Извлечение имени пользователя из токена
-    public String extractUsername(String token) {
+    // Извлечение email из токена
+    public String extractEmail(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
@@ -47,7 +47,7 @@ public class JwtTokenUtil {
 
     // Проверка валидности токена
     public boolean validateToken(String token, String username) {
-        final String extractedUsername = extractUsername(token);
+        final String extractedUsername = extractEmail(token);
         return (extractedUsername.equals(username) && !isTokenExpired(token));
     }
 

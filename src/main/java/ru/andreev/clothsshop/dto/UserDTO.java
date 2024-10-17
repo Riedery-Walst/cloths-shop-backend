@@ -2,6 +2,7 @@ package ru.andreev.clothsshop.dto;
 
 import jakarta.validation.constraints.Email;
 import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.Pattern;
 import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Data;
@@ -11,10 +12,6 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class UserDTO {
-
-    @NotBlank(message = "Username is required")
-    @Size(min = 3, max = 20, message = "Username must be between 3 and 20 characters")
-    private String username;
 
     @NotBlank(message = "Email is required")
     @Email(message = "Email should be valid")
@@ -26,4 +23,9 @@ public class UserDTO {
 
     private String firstName;
     private String lastName;
+
+    @Pattern(regexp = "^\\+?[0-9. ()-]{7,25}$", message = "Invalid phone number")
+    private String phone;
+
+    private AddressDTO address;  // Адрес как вложенный объект (опционально)
 }

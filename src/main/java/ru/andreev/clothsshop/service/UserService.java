@@ -2,14 +2,15 @@ package ru.andreev.clothsshop.service;
 
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.stereotype.Service;
+import ru.andreev.clothsshop.dto.AddressDTO;
 import ru.andreev.clothsshop.dto.UserDTO;
+import ru.andreev.clothsshop.model.Address;
 import ru.andreev.clothsshop.model.Role;
 import ru.andreev.clothsshop.model.User;
 import ru.andreev.clothsshop.repository.UserRepository;
 
 @Service
 public class UserService {
-
     private final BCryptPasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
 
@@ -19,20 +20,51 @@ public class UserService {
     }
 
     public User registerUser(UserDTO userDTO) {
-        if (userRepository.existsByUsername(userDTO.getUsername())) {
-            throw new IllegalArgumentException("Username is already taken.");
-        }
         if (userRepository.existsByEmail(userDTO.getEmail())) {
             throw new IllegalArgumentException("Email is already in use.");
         }
 
         User user = new User();
-        user.setUsername(userDTO.getUsername());
         user.setEmail(userDTO.getEmail());
         user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
+        user.setFirstName(userDTO.getFirstName());
+        user.setLastName(userDTO.getLastName());
+        user.setPhone(userDTO.getPhone());
         user.setRole(Role.USER);
 
+        // Если адрес передан, добавляем его
+        if (userDTO.getAddress() != null) {
+            Address address = convertToAddress(userDTO.getAddress());
+            user.setAddress(address);
+        }
+
         return userRepository.save(user);
+    }
+
+    public UserDTO getUserProfile(String email) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        return convertToDTO(user);
+    }
+
+    public UserDTO updateUserProfile(String email, UserDTO userDTO) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
+
+        user.setEmail(userDTO.getEmail());
+        user.setFirstName(userDTO.getFirstName());
+        user.setLastName(userDTO.getLastName());
+        user.setPhone(userDTO.getPhone());
+
+        // Если передан новый адрес, обновляем его
+        if (userDTO.getAddress() != null) {
+            Address address = convertToAddress(userDTO.getAddress());
+            user.setAddress(address);
+        }
+
+        userRepository.save(user);
+        return convertToDTO(user);
     }
 
     public User makeAdmin(String email) {
@@ -42,40 +74,31 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    public UserDTO getUserProfile(String username) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
-
-        return convertToDTO(user);  // Преобразуем User в UserDTO
-    }
-
-    // Обновить профиль пользователя
-    public UserDTO updateUserProfile(String username, UserDTO userDTO) {
-        User user = userRepository.findByUsername(username)
-                .orElseThrow(() -> new IllegalArgumentException("User not found"));
-
-        // Обновляем поля, которые могут быть изменены
-        user.setEmail(userDTO.getEmail());
-        user.setFirstName(userDTO.getFirstName());
-        user.setLastName(userDTO.getLastName());
-
-        // Если пользователь передал новый пароль, обновляем его
-        if (userDTO.getPassword() != null && !userDTO.getPassword().isEmpty()) {
-            user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
-        }
-
-        userRepository.save(user);
-        return convertToDTO(user);
-    }
-
-    // Метод для преобразования User в UserDTO
     private UserDTO convertToDTO(User user) {
         UserDTO userDTO = new UserDTO();
-        userDTO.setUsername(user.getUsername());
         userDTO.setEmail(user.getEmail());
         userDTO.setFirstName(user.getFirstName());
         userDTO.setLastName(user.getLastName());
-        // Пароль не нужно возвращать
+        userDTO.setPhone(user.getPhone());
+
+        if (user.getAddress() != null) {
+            AddressDTO addressDTO = new AddressDTO();
+            addressDTO.setCountry(user.getAddress().getCountry());
+            addressDTO.setCity(user.getAddress().getCity());
+            addressDTO.setStreet(user.getAddress().getStreet());
+            addressDTO.setPostalCode(user.getAddress().getPostalCode());
+            userDTO.setAddress(addressDTO);
+        }
+
         return userDTO;
+    }
+
+    private Address convertToAddress(AddressDTO addressDTO) {
+        Address address = new Address();
+        address.setCountry(addressDTO.getCountry());
+        address.setCity(addressDTO.getCity());
+        address.setStreet(addressDTO.getStreet());
+        address.setPostalCode(addressDTO.getPostalCode());
+        return address;
     }
 }
