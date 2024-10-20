@@ -36,11 +36,16 @@ public class OrderService {
         for (OrderItemDTO itemDTO : orderDTO.getItems()) {
             Product product = productRepository.findById(itemDTO.getProductId())
                     .orElseThrow(() -> new IllegalArgumentException("Product not found"));
+
             OrderItem item = new OrderItem();
             item.setProduct(product);
             item.setQuantity(itemDTO.getQuantity());
+            item.setPrice(product.getPrice()); // Цена берётся из базы данных
+
             order.addItem(item);
         }
+
+        order.recalculateTotalPrice();
 
         return orderRepository.save(order);
     }
@@ -71,5 +76,7 @@ public class OrderService {
         return orderDTO;
     }
 
-
+    public Order saveOrder(Order order) {
+        return orderRepository.save(order);
+    }
 }

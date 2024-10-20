@@ -30,6 +30,10 @@ public class Order {
     @Enumerated(EnumType.STRING)
     private OrderStatus status;
 
+    @OneToOne
+    @JoinColumn(name = "payment_id") // указываем внешний ключ в таблице orders
+    private Payment payment;
+
     // Метод для добавления элементов заказа
     public void addItem(OrderItem item) {
         this.items.add(item);
@@ -41,4 +45,5 @@ public class Order {
     public void recalculateTotalPrice() {
         this.totalPrice = items.stream().mapToDouble(OrderItem::getSubtotal).sum();
     }
+
 }
