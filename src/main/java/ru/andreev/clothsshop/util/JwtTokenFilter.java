@@ -16,7 +16,6 @@ import java.io.IOException;
 @Component
 public class JwtTokenFilter extends OncePerRequestFilter {
     private final JwtTokenUtil jwtTokenUtil;
-
     private final CustomUserDetailsService customUserDetailsService;
 
     public JwtTokenFilter(JwtTokenUtil jwtTokenUtil, CustomUserDetailsService customUserDetailsService) {
@@ -25,7 +24,9 @@ public class JwtTokenFilter extends OncePerRequestFilter {
     }
 
     @Override
-    protected void doFilterInternal(HttpServletRequest request, HttpServletResponse response, FilterChain filterChain) throws IOException, ServletException {
+    protected void doFilterInternal(HttpServletRequest request,
+                                    HttpServletResponse response,
+                                    FilterChain filterChain) throws IOException, ServletException {
         final String authorizationHeader = request.getHeader("Authorization");
 
         String token = null;
@@ -34,7 +35,12 @@ public class JwtTokenFilter extends OncePerRequestFilter {
         // Проверяем наличие токена в заголовке
         if (authorizationHeader != null && authorizationHeader.startsWith("Bearer ")) {
             token = authorizationHeader.substring(7);  // Извлекаем токен из заголовка
-            username = jwtTokenUtil.extractEmail(token);  // Извлекаем имя пользователя из токена
+            try {
+                username = jwtTokenUtil.extractEmail(token);  // Извлекаем имя пользователя из токена
+            } catch (Exception e) {
+                // Логирование ошибки (опционально)
+                logger.error("Не удалось извлечь email из токена: {}");
+            }
         }
 
         // Проверка аутентификации пользователя
@@ -43,9 +49,11 @@ public class JwtTokenFilter extends OncePerRequestFilter {
 
             // Если токен валиден, аутентифицируем пользователя
             if (jwtTokenUtil.validateToken(token, userDetails.getUsername())) {
-                UsernamePasswordAuthenticationToken authenticationToken = new UsernamePasswordAuthenticationToken(
-                        userDetails, null, userDetails.getAuthorities());
-                authenticationToken.setDetails(new WebAuthenticationDetailsSource().buildDetails(request));
+                UsernamePasswordAuthenticationToken authenticationToken =
+                        new UsernamePasswordAuthenticationToken(
+                                userDetails, null, userDetails.getAuthorities());
+                authenticationToken.setDetails(
+                        new WebAuthenticationDetailsSource().buildDetails(request));
 
                 SecurityContextHolder.getContext().setAuthentication(authenticationToken);
             }

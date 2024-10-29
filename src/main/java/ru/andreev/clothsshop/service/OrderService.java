@@ -1,5 +1,6 @@
 package ru.andreev.clothsshop.service;
 
+import jakarta.transaction.Transactional;
 import org.springframework.stereotype.Service;
 import ru.andreev.clothsshop.dto.OrderDTO;
 import ru.andreev.clothsshop.dto.OrderItemDTO;
@@ -24,6 +25,7 @@ public class OrderService {
     }
 
     // Создание нового заказа с использованием DTO
+    @Transactional
     public Order createOrder(OrderDTO orderDTO) {
         User user = userRepository.findById(orderDTO.getUserId())
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
@@ -34,13 +36,17 @@ public class OrderService {
         order.setStatus(OrderStatus.PENDING);
 
         for (OrderItemDTO itemDTO : orderDTO.getItems()) {
+            if (itemDTO.getQuantity() <= 0) {
+                throw new IllegalArgumentException("Quantity must be greater than zero for product ID: " + itemDTO.getProductId());
+            }
+
             Product product = productRepository.findById(itemDTO.getProductId())
                     .orElseThrow(() -> new IllegalArgumentException("Product not found"));
 
             OrderItem item = new OrderItem();
             item.setProduct(product);
             item.setQuantity(itemDTO.getQuantity());
-            item.setPrice(product.getPrice()); // Цена берётся из базы данных
+            item.setPrice(product.getPrice());
 
             order.addItem(item);
         }

@@ -1,6 +1,7 @@
 package ru.andreev.clothsshop.service;
 
 import com.fasterxml.jackson.databind.ObjectMapper;
+import jakarta.transaction.Transactional;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.stereotype.Service;
@@ -47,6 +48,7 @@ public class PaymentService {
         this.restTemplate = restTemplate;
     }
 
+    @Transactional
     public PaymentResponse createPayment(PaymentRequest paymentRequest) {
         // Найти заказ по ID
         Order order = orderRepository.findById(paymentRequest.getOrderId())

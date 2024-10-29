@@ -1,6 +1,5 @@
 package ru.andreev.clothsshop.controller;
 
-import jakarta.validation.Valid;
 import org.springframework.web.bind.annotation.*;
 import ru.andreev.clothsshop.dto.ProductDTO;
 import ru.andreev.clothsshop.service.ProductService;
@@ -39,23 +38,4 @@ public class ProductController {
 
         return productService.searchProducts(name, color, size, minPrice, maxPrice, category);
     }
-
-    // Добавить новый товар (доступно только для администраторов)
-    @PostMapping("/admin/add")
-    public ProductDTO addProduct(@Valid @RequestBody ProductDTO productDTO) {
-        return productService.addProduct(productDTO);
-    }
-
-    // Обновить товар (доступно только для администраторов)
-    @PutMapping("/admin/update/{id}")
-    public ProductDTO updateProduct(@PathVariable Long id, @Valid @RequestBody ProductDTO productDTO) {
-        return productService.updateProduct(id, productDTO);
-    }
-
-    // Удалить товар (доступно только для администраторов)
-    @DeleteMapping("/admin/delete/{id}")
-    public void deleteProduct(@PathVariable Long id) {
-        productService.deleteProduct(id);
-    }
-
 }

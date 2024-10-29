@@ -22,27 +22,4 @@ public class CategoryController {
         return categoryService.getAllCategories();
     }
 
-    // Получить категорию по ID
-    @GetMapping("/{id}")
-    public Category getCategoryById(@PathVariable Long id) {
-        return categoryService.getCategoryById(id);
-    }
-
-    // Добавить новую категорию (доступно только для администраторов)
-    @PostMapping("/admin/add")
-    public Category addCategory(@RequestBody Category category) {
-        return categoryService.addCategory(category);
-    }
-
-    // Обновить категорию (доступно только для администраторов)
-    @PutMapping("/admin/update/{id}")
-    public Category updateCategory(@PathVariable Long id, @RequestBody Category updatedCategory) {
-        return categoryService.updateCategory(id, updatedCategory);
-    }
-
-    // Удалить категорию (доступно только для администраторов)
-    @DeleteMapping("/admin/delete/{id}")
-    public void deleteCategory(@PathVariable Long id) {
-        categoryService.deleteCategory(id);
-    }
 }

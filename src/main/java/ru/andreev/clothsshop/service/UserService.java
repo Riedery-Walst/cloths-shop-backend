@@ -1,6 +1,6 @@
 package ru.andreev.clothsshop.service;
 
-import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
+import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import ru.andreev.clothsshop.dto.AddressDTO;
 import ru.andreev.clothsshop.dto.UserDTO;
@@ -11,10 +11,10 @@ import ru.andreev.clothsshop.repository.UserRepository;
 
 @Service
 public class UserService {
-    private final BCryptPasswordEncoder passwordEncoder;
     private final UserRepository userRepository;
+    private final PasswordEncoder passwordEncoder;
 
-    public UserService(UserRepository userRepository, BCryptPasswordEncoder passwordEncoder) {
+    public UserService(UserRepository userRepository, PasswordEncoder passwordEncoder) {
         this.userRepository = userRepository;
         this.passwordEncoder = passwordEncoder;
     }
@@ -74,7 +74,12 @@ public class UserService {
         return userRepository.save(user);
     }
 
-    private UserDTO convertToDTO(User user) {
+    public User findByEmail(String email) {
+        return userRepository.findByEmail(email)
+                .orElseThrow(() -> new IllegalArgumentException("User not found with email: " + email));
+    }
+
+    public UserDTO convertToDTO(User user) {
         UserDTO userDTO = new UserDTO();
         userDTO.setEmail(user.getEmail());
         userDTO.setFirstName(user.getFirstName());

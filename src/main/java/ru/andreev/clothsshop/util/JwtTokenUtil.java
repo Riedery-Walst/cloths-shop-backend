@@ -14,10 +14,15 @@ import java.util.function.Function;
 @Component
 public class JwtTokenUtil {
 
-    private final SecretKey key = Keys.secretKeyFor(SignatureAlgorithm.HS256);  // Генерация ключа
+    @Value("${jwt.secret}")
+    private String secret;
 
     @Value("${jwt.expirationMs}")
     private long jwtExpirationMs;
+
+    private SecretKey getKey() {
+        return Keys.hmacShaKeyFor(secret.getBytes());
+    }
 
     // Генерация JWT токена
     public String generateToken(String email) {
@@ -25,7 +30,7 @@ public class JwtTokenUtil {
                 .setSubject(email)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
-                .signWith(key, SignatureAlgorithm.HS256)
+                .signWith(getKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
@@ -56,6 +61,10 @@ public class JwtTokenUtil {
     }
 
     private Claims extractAllClaims(String token) {
-        return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
+        return Jwts.parserBuilder()
+                .setSigningKey(getKey())
+                .build()
+                .parseClaimsJws(token)
+                .getBody();
     }
 }

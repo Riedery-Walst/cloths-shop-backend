@@ -1,17 +1,16 @@
 package ru.andreev.clothsshop.controller;
 
 
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import ru.andreev.clothsshop.dto.LoginRequestDTO;
-import ru.andreev.clothsshop.dto.LoginResponseDTO;
+import ru.andreev.clothsshop.dto.UserDTO;
 import ru.andreev.clothsshop.util.JwtTokenUtil;
 
 @RestController
@@ -28,18 +27,19 @@ public class AuthController {
 
     // Логин и получение JWT токена
     @PostMapping("/login")
-    public LoginResponseDTO login(@RequestBody LoginRequestDTO loginRequestDTO) {
+    public ResponseEntity<?> authenticateUser(@RequestBody UserDTO userDTO) {
         try {
             Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(loginRequestDTO.getEmail(), loginRequestDTO.getPassword()));
+                    new UsernamePasswordAuthenticationToken(
+                            userDTO.getEmail(),
+                            userDTO.getPassword()
+                    )
+            );
 
-            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            String jwt = jwtTokenUtil.generateToken(userDetails.getUsername());
-
-            return new LoginResponseDTO(jwt);
-
+            String token = jwtTokenUtil.generateToken(userDTO.getEmail());
+            return ResponseEntity.ok(token);
         } catch (AuthenticationException e) {
-            throw new RuntimeException("Invalid login credentials");
+            return ResponseEntity.status(401).body("Invalid email or password");
         }
     }
 }
