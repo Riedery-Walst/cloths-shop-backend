@@ -13,6 +13,8 @@ import org.springframework.web.bind.annotation.RestController;
 import ru.andreev.clothsshop.dto.UserDTO;
 import ru.andreev.clothsshop.util.JwtTokenUtil;
 
+import java.util.Map;
+
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
@@ -29,7 +31,7 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@RequestBody UserDTO userDTO) {
         try {
-            Authentication authentication = authenticationManager.authenticate(
+            authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             userDTO.getEmail(),
                             userDTO.getPassword()
@@ -37,7 +39,8 @@ public class AuthController {
             );
 
             String token = jwtTokenUtil.generateToken(userDTO.getEmail());
-            return ResponseEntity.ok(token);
+            System.out.println("Generated token: " + token);
+            return ResponseEntity.ok(Map.of("token", token));
         } catch (AuthenticationException e) {
             return ResponseEntity.status(401).body("Invalid email or password");
         }

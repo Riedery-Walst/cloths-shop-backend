@@ -40,4 +40,10 @@ public class UserController {
         User promotedUser = userService.makeAdmin(email);
         return ResponseEntity.ok(promotedUser);
     }
+
+    @GetMapping("/check-email")
+    public ResponseEntity<Boolean> checkEmailExists(@RequestParam String email) {
+        boolean exists = userService.emailExists(email);
+        return ResponseEntity.ok(exists);
+    }
 }
