@@ -2,9 +2,9 @@ package ru.andreev.clothsshop.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import ru.andreev.clothsshop.dto.ColorDTO;
 import ru.andreev.clothsshop.dto.ProductDTO;
 import ru.andreev.clothsshop.model.Category;
-import ru.andreev.clothsshop.model.Color;
 import ru.andreev.clothsshop.model.Size;
 import ru.andreev.clothsshop.service.*;
 
@@ -55,22 +55,24 @@ public class AdminController {
         categoryService.deleteCategory(id);
     }
 
-    // Добавить новый цвет
-    @PostMapping("/colors") // Измененный путь
-    public Color addColor(@RequestBody Color color) {
-        return colorService.addColor(color);
+    @PostMapping("/colors")
+    public ResponseEntity<ColorDTO> createColor(@RequestBody ColorDTO colorDTO) {
+        ColorDTO newColor = colorService.createColor(colorDTO);
+        return ResponseEntity.ok(newColor);
     }
 
-    // Обновить цвет
-    @PutMapping("/colors/{id}") // Измененный путь
-    public Color updateColor(@PathVariable Long id, @RequestBody Color updatedColor) {
-        return colorService.updateColor(id, updatedColor);
+    // Обновить цвет по ID
+    @PutMapping("/colors/{id}")
+    public ResponseEntity<ColorDTO> updateColor(@PathVariable Long id, @RequestBody ColorDTO colorDTO) {
+        ColorDTO updatedColor = colorService.updateColor(id, colorDTO);
+        return ResponseEntity.ok(updatedColor);
     }
 
-    // Удалить цвет
-    @DeleteMapping("/colors/{id}") // Измененный путь
-    public void deleteColor(@PathVariable Long id) {
+    // Удалить цвет по ID
+    @DeleteMapping("/colors/{id}")
+    public ResponseEntity<Void> deleteColor(@PathVariable Long id) {
         colorService.deleteColor(id);
+        return ResponseEntity.noContent().build();
     }
 
     // Добавить новый размер

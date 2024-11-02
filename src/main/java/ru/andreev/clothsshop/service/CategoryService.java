@@ -43,4 +43,8 @@ public class CategoryService {
         }
         categoryRepository.deleteById(id);
     }
+
+    public List<Category> getCategoriesTree() {
+        return categoryRepository.findAllByParentIsNull(); // предполагается, что родительские категории имеют null в поле `parent`
+    }
 }

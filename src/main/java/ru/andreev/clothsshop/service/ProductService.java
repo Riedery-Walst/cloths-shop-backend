@@ -9,7 +9,6 @@ import ru.andreev.clothsshop.repository.CategoryRepository;
 import ru.andreev.clothsshop.repository.ColorRepository;
 import ru.andreev.clothsshop.repository.ProductRepository;
 import ru.andreev.clothsshop.repository.SizeRepository;
-import ru.andreev.clothsshop.specification.ProductSpecification;
 
 import java.util.List;
 import java.util.stream.Collectors;
@@ -96,15 +95,7 @@ public class ProductService {
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
-
-    public List<ProductDTO> searchProducts(String name, String color, String size, Double minPrice, Double maxPrice, String category) {
-        Specification<Product> spec = Specification.where(ProductSpecification.hasName(name))
-                .and(ProductSpecification.hasColor(color))
-                .and(ProductSpecification.hasSize(size))
-                .and(ProductSpecification.hasPriceBetween(minPrice, maxPrice))
-                .and(ProductSpecification.hasCategory(category));
-
-        List<Product> products = productRepository.findAll(spec);
-        return products.stream().map(this::convertToDTO).collect(Collectors.toList());
+    public List<Product> getProducts(Specification<Product> spec) {
+        return productRepository.findAll(spec);
     }
 }

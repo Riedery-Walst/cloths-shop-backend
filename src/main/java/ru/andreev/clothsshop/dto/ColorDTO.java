@@ -8,7 +8,7 @@ import lombok.NoArgsConstructor;
 @NoArgsConstructor
 @AllArgsConstructor
 public class ColorDTO {
-
     private Long id;
     private String name;
+    private String hex;
 }

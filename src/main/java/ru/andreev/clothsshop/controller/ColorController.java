@@ -1,7 +1,11 @@
 package ru.andreev.clothsshop.controller;
 
-import org.springframework.web.bind.annotation.*;
-import ru.andreev.clothsshop.model.Color;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import ru.andreev.clothsshop.dto.ColorDTO;
 import ru.andreev.clothsshop.service.ColorService;
 
 import java.util.List;
@@ -15,15 +19,14 @@ public class ColorController {
         this.colorService = colorService;
     }
 
-    // Получить все цвета
     @GetMapping
-    public List<Color> getAllColors() {
+    public List<ColorDTO> getAllColors() {
         return colorService.getAllColors();
     }
 
-    // Получить цвет по ID
     @GetMapping("/{id}")
-    public Color getColorById(@PathVariable Long id) {
-        return colorService.getColorById(id);
+    public ResponseEntity<ColorDTO> getColorById(@PathVariable Long id) {
+        ColorDTO color = colorService.getColorById(id);
+        return ResponseEntity.ok(color);
     }
 }

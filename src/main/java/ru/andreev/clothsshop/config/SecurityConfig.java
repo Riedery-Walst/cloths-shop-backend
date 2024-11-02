@@ -39,7 +39,7 @@ public class SecurityConfig {
                 .authorizeHttpRequests(auth -> auth
                         .requestMatchers("/api/auth/**", "/api/users/register", "/api/products/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")  // Только ADMIN может доступиться к /api/admin/**
-                        .anyRequest().authenticated()  // Все остальные запросы требуют аутентификации
+                        .anyRequest().permitAll()  // Все остальные запросы требуют аутентификации
                 )
                 // Указываем обработчик ошибок аутентификации
                 .exceptionHandling(exceptions -> exceptions

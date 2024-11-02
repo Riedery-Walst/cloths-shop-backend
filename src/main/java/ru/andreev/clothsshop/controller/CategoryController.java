@@ -17,7 +17,7 @@ public class CategoryController {
     }
 
     // Получить все категории
-    @GetMapping("/categories")
+    @GetMapping
     public List<Category> getParentCategories() {
         return categoryService.getAllCategories();
     }

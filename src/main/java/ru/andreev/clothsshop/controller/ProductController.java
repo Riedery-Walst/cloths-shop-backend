@@ -1,10 +1,14 @@
 package ru.andreev.clothsshop.controller;
 
+import org.springframework.data.jpa.domain.Specification;
 import org.springframework.web.bind.annotation.*;
 import ru.andreev.clothsshop.dto.ProductDTO;
+import ru.andreev.clothsshop.model.Product;
 import ru.andreev.clothsshop.service.ProductService;
+import ru.andreev.clothsshop.specification.ProductSpecification;
 
 import java.util.List;
+import java.util.stream.Collectors;
 
 @RestController
 @RequestMapping("/api/products")
@@ -27,15 +31,31 @@ public class ProductController {
         return productService.getProductById(id);
     }
 
-    @GetMapping("/search")
-    public List<ProductDTO> searchProducts(
-            @RequestParam(required = false) String name,
-            @RequestParam(required = false) String color,
-            @RequestParam(required = false) String size,
-            @RequestParam(required = false) Double minPrice,
-            @RequestParam(required = false) Double maxPrice,
-            @RequestParam(required = false) String category) {
+    @PostMapping("/filter")
+    public List<ProductDTO> getFilteredProducts(@RequestBody ProductDTO filter) {
+        Specification<Product> spec = Specification.where(
+                        ProductSpecification.hasCategoryId(filter.getCategoryId()))
+                .and(ProductSpecification.hasColorIds(filter.getColorIds()))
+                .and(ProductSpecification.hasSizeIds(filter.getSizeIds()));
 
-        return productService.searchProducts(name, color, size, minPrice, maxPrice, category);
+        List<Product> products = productService.getProducts(spec);
+
+        return products.stream()
+                .map(this::convertToProductDTO)
+                .collect(Collectors.toList());
+    }
+
+    private ProductDTO convertToProductDTO(Product product) {
+        return new ProductDTO(
+                product.getId(),
+                product.getName(),
+                product.getDescription(),
+                product.getPrice(),
+                product.getQuantity(),
+                product.getCategory().getId(),
+                product.getColors().stream().map(color -> color.getId()).collect(Collectors.toList()),
+                product.getSizes().stream().map(size -> size.getId()).collect(Collectors.toList()),
+                product.getPhotos()
+        );
     }
 }

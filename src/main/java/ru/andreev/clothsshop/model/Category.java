@@ -1,5 +1,7 @@
 package ru.andreev.clothsshop.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
+import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -16,5 +18,14 @@ public class Category {
     private String name;
 
     @OneToMany(mappedBy = "category")
+    @JsonIgnore
     private List<Product> products;
+
+    @OneToMany(mappedBy = "parent")
+    @JsonManagedReference
+    private List<Category> children;
+
+    @ManyToOne
+    @JoinColumn(name = "parent_id")
+    private Category parent;
 }
