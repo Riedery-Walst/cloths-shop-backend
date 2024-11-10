@@ -2,11 +2,14 @@ package ru.andreev.clothsshop.controller;
 
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
+import org.springframework.web.multipart.MultipartFile;
 import ru.andreev.clothsshop.dto.ColorDTO;
 import ru.andreev.clothsshop.dto.ProductDTO;
+import ru.andreev.clothsshop.dto.SizeDTO;
 import ru.andreev.clothsshop.model.Category;
-import ru.andreev.clothsshop.model.Size;
 import ru.andreev.clothsshop.service.*;
+
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -76,37 +79,43 @@ public class AdminController {
     }
 
     // Добавить новый размер
-    @PostMapping("/sizes") // Измененный путь
-    public Size addSize(@RequestBody Size size) {
-        return sizeService.addSize(size);
+    @PostMapping("/sizes")
+    public ResponseEntity<SizeDTO> addSize(@RequestBody SizeDTO sizeDTO) {
+        SizeDTO newSize = sizeService.addSize(sizeDTO);
+        return ResponseEntity.ok(newSize);
     }
 
-    // Обновить размер
-    @PutMapping("/sizes/{id}") // Измененный путь
-    public Size updateSize(@PathVariable Long id, @RequestBody Size updatedSize) {
-        return sizeService.updateSize(id, updatedSize);
+    // Обновить размер по ID
+    @PutMapping("/sizes/{id}")
+    public ResponseEntity<SizeDTO> updateSize(@PathVariable Long id, @RequestBody SizeDTO updatedSizeDTO) {
+        SizeDTO updatedSize = sizeService.updateSize(id, updatedSizeDTO);
+        return ResponseEntity.ok(updatedSize);
     }
 
-    // Удалить размер
-    @DeleteMapping("/sizes/{id}") // Измененный путь
-    public void deleteSize(@PathVariable Long id) {
+    // Удалить размер по ID
+    @DeleteMapping("/sizes/{id}")
+    public ResponseEntity<Void> deleteSize(@PathVariable Long id) {
         sizeService.deleteSize(id);
+        return ResponseEntity.noContent().build();
     }
 
     // Добавить новый продукт
-    @PostMapping("/products") // Измененный путь
-    public ProductDTO addProduct(@RequestBody ProductDTO productDTO) {
-        return productService.addProduct(productDTO);
+    @PostMapping("/products")
+    public ProductDTO addProduct(@RequestPart("product") ProductDTO productDTO,
+                                 @RequestPart("photos") List<MultipartFile> photos) {
+        return productService.addProduct(productDTO, photos);
     }
 
     // Обновить продукт
-    @PutMapping("/products/{id}") // Измененный путь
-    public ProductDTO updateProduct(@PathVariable Long id, @RequestBody ProductDTO productDTO) {
-        return productService.updateProduct(id, productDTO);
+    @PutMapping("/products/{id}")
+    public ProductDTO updateProduct(@PathVariable Long id,
+                                    @RequestPart("product") ProductDTO productDTO,
+                                    @RequestPart("photos") List<MultipartFile> photos) {
+        return productService.updateProduct(id, productDTO, photos);
     }
 
     // Удалить продукт
-    @DeleteMapping("/products/{id}") // Измененный путь
+    @DeleteMapping("/products/{id}")
     public void deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
     }

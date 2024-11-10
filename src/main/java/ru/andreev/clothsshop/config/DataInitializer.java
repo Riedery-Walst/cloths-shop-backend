@@ -26,7 +26,6 @@ public class DataInitializer {
                 admin.setLastName("User");
                 admin.setPhone("000-000-0000");
                 admin.setRole(Role.ADMIN);
-                // Установите другие необходимые поля
 
                 userRepository.save(admin);
                 System.out.println("Администратор создан: " + adminEmail);

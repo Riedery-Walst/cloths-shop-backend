@@ -4,20 +4,21 @@ import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
-import java.util.List;
-
 @Entity
 @Data
-@Table(name = "sizes")
-public class Size {
+@Table(name = "product-photos")
+public class ProductPhoto {
+
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "name", nullable = false, unique = true)
-    private String name;
+    @Column(length = 500)
+    private String photoUrl;
 
-    @ManyToMany(mappedBy = "sizes")
+    @ManyToOne
+    @JoinColumn(name = "product_id")
     @JsonIgnore
-    private List<Product> products;
+    private Product product;
+
 }

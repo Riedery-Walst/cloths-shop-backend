@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class PaymentResponse {
-    private String id;  // Идентификатор платежа
+    private String id;
     private String status;
     private Confirmation confirmation;
 
