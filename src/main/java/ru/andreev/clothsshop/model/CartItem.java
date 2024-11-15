@@ -1,5 +1,6 @@
 package ru.andreev.clothsshop.model;
 
+import com.fasterxml.jackson.annotation.JsonIgnore;
 import jakarta.persistence.*;
 import lombok.Data;
 
@@ -14,6 +15,7 @@ public class CartItem {
 
     @ManyToOne
     @JoinColumn(name = "cart_id")
+    @JsonIgnore
     private Cart cart;
 
     @ManyToOne
@@ -21,6 +23,12 @@ public class CartItem {
     private Product product;
 
     private int quantity;
+
+    @Column(name = "color_id")
+    private Long colorId;
+
+    @Column(name = "size_id")
+    private Long sizeId;
 
     public double getSubtotal() {
         return product.getPrice() * quantity;

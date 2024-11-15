@@ -4,12 +4,10 @@ package ru.andreev.clothsshop.controller;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
+import org.springframework.security.core.userdetails.UserDetails;
+import org.springframework.web.bind.annotation.*;
 import ru.andreev.clothsshop.dto.UserDTO;
 import ru.andreev.clothsshop.util.JwtTokenUtil;
 
@@ -44,5 +42,13 @@ public class AuthController {
         } catch (AuthenticationException e) {
             return ResponseEntity.status(401).body("Invalid email or password");
         }
+    }
+
+    @GetMapping("/validate-token")
+    public ResponseEntity<?> validateToken(@AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails != null) {
+            return ResponseEntity.ok("Token is valid");
+        }
+        return ResponseEntity.status(401).body("Token is invalid or expired");
     }
 }

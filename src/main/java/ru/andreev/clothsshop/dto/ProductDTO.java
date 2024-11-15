@@ -17,7 +17,7 @@ public class ProductDTO {
     private String description;
     private double price;
     private int quantity;
-    private List<Long> colorIds;
-    private List<Long> sizeIds;
-    private List<String> photos= new ArrayList<>();
+    private List<ColorDTO> colors = new ArrayList<>();
+    private List<SizeDTO> sizes = new ArrayList<>();
+    private List<String> photos = new ArrayList<>();
 }

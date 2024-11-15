@@ -39,7 +39,7 @@ public class JwtTokenFilter extends OncePerRequestFilter {
                 username = jwtTokenUtil.extractEmail(token);  // Извлекаем имя пользователя из токена
             } catch (Exception e) {
                 // Логирование ошибки (опционально)
-                logger.error("Не удалось извлечь email из токена:");
+                logger.error("Токен отсутствует или не действителен:");
             }
         }
 
