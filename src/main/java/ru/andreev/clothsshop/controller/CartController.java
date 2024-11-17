@@ -43,6 +43,15 @@ public class CartController {
         return cartService.removeProductFromCart(email, cartItemId);
     }
 
+    @PatchMapping("/updateQuantity/{cartItemId}")
+    public Cart updateCartItemQuantity(
+            @PathVariable Long cartItemId,
+            @RequestParam int quantity,
+            Authentication authentication) {
+        String email = authentication.getName();
+        return cartService.updateCartItemQuantity(email, cartItemId, quantity);
+    }
+
     // Очистить корзину текущего пользователя
     @DeleteMapping("/clear")
     public Cart clearCart(Authentication authentication) {

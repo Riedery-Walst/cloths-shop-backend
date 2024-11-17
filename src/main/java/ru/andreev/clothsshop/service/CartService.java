@@ -100,4 +100,22 @@ public class CartService {
         cart.setUser(user);
         return cartRepository.save(cart);
     }
+
+    public Cart updateCartItemQuantity(String email, Long cartItemId, int quantity) {
+        User user = userRepository.findByEmail(email)
+                .orElseThrow(() -> new RuntimeException("User not found"));
+
+        Cart cart = cartRepository.findByUser(user)
+                .orElseThrow(() -> new RuntimeException("Cart not found"));
+
+        CartItem item = cart.getItems().stream()
+                .filter(cartItem -> cartItem.getId().equals(cartItemId))
+                .findFirst()
+                .orElseThrow(() -> new RuntimeException("Cart item not found"));
+
+        item.setQuantity(quantity);
+        cart.recalculateTotalPrice();
+
+        return cartRepository.save(cart);
+    }
 }
