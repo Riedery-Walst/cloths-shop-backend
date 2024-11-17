@@ -19,10 +19,6 @@ public class Product {
     private double price;
     private int quantity;
 
-    @ManyToOne
-    @JoinColumn(name = "category_id")
-    private Category category;
-
     @ManyToMany
     @JoinTable(
             name = "product_colors",

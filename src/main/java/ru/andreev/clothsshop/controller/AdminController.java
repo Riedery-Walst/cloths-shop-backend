@@ -6,7 +6,6 @@ import org.springframework.web.multipart.MultipartFile;
 import ru.andreev.clothsshop.dto.ColorDTO;
 import ru.andreev.clothsshop.dto.ProductDTO;
 import ru.andreev.clothsshop.dto.SizeDTO;
-import ru.andreev.clothsshop.model.Category;
 import ru.andreev.clothsshop.service.*;
 
 import java.util.List;
@@ -17,14 +16,12 @@ public class AdminController {
     private final UserService userService;
     private final ProductService productService;
     private final SizeService sizeService;
-    private final CategoryService categoryService;
     private final ColorService colorService;
 
-    public AdminController(UserService userService, ProductService productService, SizeService sizeService, CategoryService categoryService, ColorService colorService) {
+    public AdminController(UserService userService, ProductService productService, SizeService sizeService, ColorService colorService) {
         this.userService = userService;
         this.productService = productService;
         this.sizeService = sizeService;
-        this.categoryService = categoryService;
         this.colorService = colorService;
     }
 
@@ -32,30 +29,6 @@ public class AdminController {
     @PostMapping("/users/promote")
     public ResponseEntity<?> promoteUser(@RequestParam String email) {
         return ResponseEntity.ok(userService.makeAdmin(email));
-    }
-
-    // Получить категорию по ID
-    @GetMapping("/categories/{id}") // Измененный путь
-    public Category getCategoryById(@PathVariable Long id) {
-        return categoryService.getCategoryById(id);
-    }
-
-    // Добавить новую категорию
-    @PostMapping("/categories") // Измененный путь
-    public Category addCategory(@RequestBody Category category) {
-        return categoryService.addCategory(category);
-    }
-
-    // Обновить категорию
-    @PutMapping("/categories/{id}") // Измененный путь
-    public Category updateCategory(@PathVariable Long id, @RequestBody Category updatedCategory) {
-        return categoryService.updateCategory(id, updatedCategory);
-    }
-
-    // Удалить категорию
-    @DeleteMapping("/categories/{id}") // Измененный путь
-    public void deleteCategory(@PathVariable Long id) {
-        categoryService.deleteCategory(id);
     }
 
     @PostMapping("/colors")
