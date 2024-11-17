@@ -25,14 +25,16 @@ public class JwtTokenUtil {
     }
 
     // Генерация JWT токена
-    public String generateToken(String email) {
+    public String generateToken(String email, String role) {
         return Jwts.builder()
                 .setSubject(email)
+                .claim("role", role)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
                 .signWith(getKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
+
 
     // Извлечение email из токена
     public String extractEmail(String token) {

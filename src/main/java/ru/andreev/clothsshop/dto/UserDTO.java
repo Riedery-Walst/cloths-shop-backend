@@ -27,5 +27,5 @@ public class UserDTO {
     @Pattern(regexp = "^\\+?[0-9. ()-]{7,25}$", message = "Invalid phone number")
     private String phone;
 
-    private AddressDTO address;  // Адрес как вложенный объект (опционально)
+    private AddressDTO address;
 }

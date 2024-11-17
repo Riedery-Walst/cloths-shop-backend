@@ -4,11 +4,14 @@ package ru.andreev.clothsshop.controller;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
+import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
+import ru.andreev.clothsshop.dto.CustomUserDetails;
 import ru.andreev.clothsshop.dto.UserDTO;
+import ru.andreev.clothsshop.model.User;
 import ru.andreev.clothsshop.util.JwtTokenUtil;
 
 import java.util.Map;
@@ -29,15 +32,21 @@ public class AuthController {
     @PostMapping("/login")
     public ResponseEntity<?> authenticateUser(@RequestBody UserDTO userDTO) {
         try {
-            authenticationManager.authenticate(
+            // Аутентификация пользователя через authenticationManager
+            Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
                             userDTO.getEmail(),
                             userDTO.getPassword()
                     )
             );
 
-            String token = jwtTokenUtil.generateToken(userDTO.getEmail());
-            System.out.println("Generated token: " + token);
+            // Извлекаем кастомные данные пользователя
+            CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
+            User user = customUserDetails.getUser();
+
+            // Генерация JWT токена с ролью пользователя
+            String token = jwtTokenUtil.generateToken(user.getEmail(), user.getRole().name());
+
             return ResponseEntity.ok(Map.of("token", token));
         } catch (AuthenticationException e) {
             return ResponseEntity.status(401).body("Invalid email or password");
