@@ -1,133 +1,77 @@
 package ru.andreev.clothsshop.service;
 
-import jakarta.transaction.Transactional;
-import org.springframework.data.jpa.domain.Specification;
 import org.springframework.stereotype.Service;
 import org.springframework.web.multipart.MultipartFile;
 import ru.andreev.clothsshop.dto.ColorDTO;
 import ru.andreev.clothsshop.dto.ProductDTO;
 import ru.andreev.clothsshop.dto.SizeDTO;
 import ru.andreev.clothsshop.exception.ProductNotFoundException;
+import ru.andreev.clothsshop.model.Color;
 import ru.andreev.clothsshop.model.Product;
 import ru.andreev.clothsshop.model.ProductPhoto;
+import ru.andreev.clothsshop.model.Size;
 import ru.andreev.clothsshop.repository.ColorRepository;
 import ru.andreev.clothsshop.repository.ProductRepository;
 import ru.andreev.clothsshop.repository.SizeRepository;
 
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Collectors;
 
 @Service
 public class ProductService {
+
     private final ProductRepository productRepository;
+    private final ProductPhotoService productPhotoService;
     private final ColorRepository colorRepository;
     private final SizeRepository sizeRepository;
-    private final ProductPhotoService productPhotoService;
 
-    public ProductService(ProductRepository productRepository, ColorRepository colorRepository, SizeRepository sizeRepository, ProductPhotoService productPhotoService) {
+    public ProductService(ProductRepository productRepository,
+                          ProductPhotoService productPhotoService,
+                          ColorRepository colorRepository,
+                          SizeRepository sizeRepository) {
         this.productRepository = productRepository;
+        this.productPhotoService = productPhotoService;
         this.colorRepository = colorRepository;
         this.sizeRepository = sizeRepository;
-        this.productPhotoService = productPhotoService;
-    }
-
-    // Преобразование Product -> ProductDTO с полными данными о цветах и размерах
-    public ProductDTO convertToDTO(Product product) {
-        return new ProductDTO(
-                product.getId(),
-                product.getName(),
-                product.getDescription(),
-                product.getPrice(),
-                product.getQuantity(),
-                // Преобразование списка Color в ColorDTO
-                product.getColors().stream()
-                        .map(color -> new ColorDTO(color.getId(), color.getName(), color.getHex()))
-                        .collect(Collectors.toList()),
-                // Преобразование списка Size в SizeDTO
-                product.getSizes().stream()
-                        .map(size -> new SizeDTO(size.getId(), size.getName()))
-                        .collect(Collectors.toList()),
-                product.getPhotos().stream()
-                        .map(ProductPhoto::getPhotoUrl)
-                        .collect(Collectors.toList())
-        );
-    }
-
-    // Преобразование ProductDTO -> Product
-    public Product convertToEntity(ProductDTO productDTO) {
-        Product product = new Product();
-        product.setName(productDTO.getName());
-        product.setDescription(productDTO.getDescription());
-        product.setPrice(productDTO.getPrice());
-        product.setQuantity(productDTO.getQuantity());
-
-        // Преобразование ColorDTO и SizeDTO обратно в Color и Size
-        product.setColors(colorRepository.findAllById(
-                productDTO.getColors().stream()
-                        .map(ColorDTO::getId)
-                        .collect(Collectors.toList())
-        ));
-        product.setSizes(sizeRepository.findAllById(
-                productDTO.getSizes().stream()
-                        .map(SizeDTO::getId)
-                        .collect(Collectors.toList())
-        ));
-
-        List<ProductPhoto> photos = productDTO.getPhotos().stream()
-                .map(url -> {
-                    ProductPhoto photo = new ProductPhoto();
-                    photo.setPhotoUrl(url);
-                    photo.setProduct(product);
-                    return photo;
-                })
-                .collect(Collectors.toList());
-
-        product.setPhotos(photos);
-        return product;
-    }
-
-    public ProductDTO getProductById(Long id) {
-        return convertToDTO(productRepository.findById(id)
-                .orElseThrow(() -> new ProductNotFoundException(id)));
     }
 
     public ProductDTO addProduct(ProductDTO productDTO, List<MultipartFile> photos) {
         Product product = convertToEntity(productDTO);
         productRepository.save(product);
 
-        productPhotoService.savePhotos(photos, product);
+        if (photos != null && !photos.isEmpty()) {
+            productPhotoService.savePhotos(photos, product);
+        }
 
         return convertToDTO(product);
     }
 
-    @Transactional
-    public ProductDTO updateProduct(Long id, ProductDTO productDTO, List<MultipartFile> photos) {
-        Product product = productRepository.findById(id)
-                .orElseThrow(() -> new ProductNotFoundException(id));
+    public ProductDTO updateProduct(ProductDTO productDTO, List<MultipartFile> photos) {
+        if (productDTO == null) {
+            throw new IllegalArgumentException("ProductDTO не может быть null");
+        }
 
-        // Обновляем данные продукта
+        Product product = productRepository.findById(productDTO.getId())
+                .orElseThrow(() -> new RuntimeException("Продукт с ID " + productDTO.getId() + " не найден"));
+
+        // Обновление данных продукта
         product.setName(productDTO.getName());
         product.setDescription(productDTO.getDescription());
         product.setPrice(productDTO.getPrice());
         product.setQuantity(productDTO.getQuantity());
-        product.setColors(colorRepository.findAllById(
-                productDTO.getColors().stream()
-                        .map(ColorDTO::getId)
-                        .collect(Collectors.toList())
-        ));
-        product.setSizes(sizeRepository.findAllById(
-                productDTO.getSizes().stream()
-                        .map(SizeDTO::getId)
-                        .collect(Collectors.toList())
-        ));
 
-        // Удаление старых фотографий
-        productPhotoService.deletePhotos(product.getPhotos());
+        // Проверка цветов и размеров
+        product.setColors(productDTO.getColors() != null ? convertColors(productDTO.getColors()) : new ArrayList<>());
+        product.setSizes(productDTO.getSizes() != null ? convertSizes(productDTO.getSizes()) : new ArrayList<>());
 
-        // Сохранение новых фотографий
-        productPhotoService.savePhotos(photos, product);
+        productRepository.save(product);
 
-        return convertToDTO(productRepository.save(product));
+        if (photos != null && !photos.isEmpty()) {
+            productPhotoService.savePhotos(photos, product);
+        }
+
+        return convertToDTO(product);
     }
 
     public void deleteProduct(Long id) {
@@ -141,13 +85,69 @@ public class ProductService {
         productRepository.delete(product);
     }
 
+    public ProductDTO getProductById(Long id) {
+        return convertToDTO(productRepository.findById(id)
+                .orElseThrow(() -> new ProductNotFoundException(id)));
+    }
+
     public List<ProductDTO> getAllProducts() {
         return productRepository.findAll().stream()
                 .map(this::convertToDTO)
                 .collect(Collectors.toList());
     }
 
-    public List<Product> getProducts(Specification<Product> spec) {
-        return productRepository.findAll(spec);
+    private Product convertToEntity(ProductDTO productDTO) {
+        Product product = new Product();
+        product.setName(productDTO.getName());
+        product.setDescription(productDTO.getDescription());
+        product.setPrice(productDTO.getPrice());
+        product.setQuantity(productDTO.getQuantity());
+        product.setColors(convertColors(productDTO.getColors()));
+        product.setSizes(convertSizes(productDTO.getSizes()));
+        return product;
+    }
+
+    private ProductDTO convertToDTO(Product product) {
+        ProductDTO productDTO = new ProductDTO();
+        productDTO.setId(product.getId());
+        productDTO.setName(product.getName());
+        productDTO.setDescription(product.getDescription());
+        productDTO.setPrice(product.getPrice());
+        productDTO.setQuantity(product.getQuantity());
+        productDTO.setColors(product.getColors().stream()
+                .map(color -> ColorDTO.builder()
+                        .id(color.getId())
+                        .name(color.getName())
+                        .build())
+                .collect(Collectors.toList()));
+        productDTO.setSizes(product.getSizes().stream()
+                .map(size -> new SizeDTO(size.getId(), size.getName()))
+                .toList());
+        productDTO.setPhotos(product.getPhotos() != null
+                ? product.getPhotos().stream()
+                .map(ProductPhoto::getPhotoUrl)
+                .toList()
+                : new ArrayList<>());
+        return productDTO;
+    }
+
+    private List<Color> convertColors(List<ColorDTO> colorDTOs) {
+        if (colorDTOs == null || colorDTOs.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return colorDTOs.stream()
+                .map(colorDTO -> colorRepository.findById(colorDTO.getId())
+                        .orElseThrow(() -> new RuntimeException("Цвет с ID " + colorDTO.getId() + " не найден")))
+                .collect(Collectors.toList());  // Ensure this returns a mutable list
+    }
+
+    private List<Size> convertSizes(List<SizeDTO> sizeDTOs) {
+        if (sizeDTOs == null || sizeDTOs.isEmpty()) {
+            return new ArrayList<>();
+        }
+        return sizeDTOs.stream()
+                .map(sizeDTO -> sizeRepository.findById(sizeDTO.getId())
+                        .orElseThrow(() -> new RuntimeException("Размер с ID " + sizeDTO.getId() + " не найден")))
+                .collect(Collectors.toList());  // Ensure this returns a mutable list
     }
 }

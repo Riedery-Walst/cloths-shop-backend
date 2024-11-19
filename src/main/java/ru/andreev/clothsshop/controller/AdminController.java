@@ -1,12 +1,17 @@
 package ru.andreev.clothsshop.controller;
 
+import com.fasterxml.jackson.core.JsonProcessingException;
+import com.fasterxml.jackson.databind.ObjectMapper;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import ru.andreev.clothsshop.dto.ColorDTO;
 import ru.andreev.clothsshop.dto.ProductDTO;
 import ru.andreev.clothsshop.dto.SizeDTO;
-import ru.andreev.clothsshop.service.*;
+import ru.andreev.clothsshop.service.ColorService;
+import ru.andreev.clothsshop.service.ProductService;
+import ru.andreev.clothsshop.service.SizeService;
+import ru.andreev.clothsshop.service.UserService;
 
 import java.util.List;
 
@@ -72,24 +77,42 @@ public class AdminController {
         return ResponseEntity.noContent().build();
     }
 
-    // Добавить новый продукт
-    @PostMapping("/products")
-    public ProductDTO addProduct(@RequestPart("product") ProductDTO productDTO,
-                                 @RequestPart("photos") List<MultipartFile> photos) {
+    @PostMapping(value = "/products", consumes = {"multipart/form-data"})
+    public ProductDTO addProduct(
+            @RequestPart("product") String productJson,
+            @RequestPart(value = "photos", required = false) List<MultipartFile> photos) {
+        ProductDTO productDTO = convertJsonToProductDTO(productJson);
+
         return productService.addProduct(productDTO, photos);
     }
 
-    // Обновить продукт
-    @PutMapping("/products/{id}")
-    public ProductDTO updateProduct(@PathVariable Long id,
-                                    @RequestPart("product") ProductDTO productDTO,
-                                    @RequestPart("photos") List<MultipartFile> photos) {
-        return productService.updateProduct(id, productDTO, photos);
+    @PutMapping(value = "products/{id}", consumes = {"multipart/form-data"})
+    public ProductDTO updateProduct(
+            @PathVariable Long id,
+            @RequestPart("product") String productJson,
+            @RequestPart(value = "photos", required = false) List<MultipartFile> photos) {
+        if (productJson == null || productJson.isEmpty()) {
+            throw new IllegalArgumentException("Данные продукта не могут быть пустыми");
+        }
+        ProductDTO productDTO = convertJsonToProductDTO(productJson);
+        productDTO.setId(id);
+
+        return productService.updateProduct(productDTO, photos);
     }
 
     // Удалить продукт
     @DeleteMapping("/products/{id}")
     public void deleteProduct(@PathVariable Long id) {
         productService.deleteProduct(id);
+    }
+
+    // Метод для преобразования JSON в ProductDTO
+    private ProductDTO convertJsonToProductDTO(String productJson) {
+        try {
+            ObjectMapper objectMapper = new ObjectMapper();
+            return objectMapper.readValue(productJson, ProductDTO.class);
+        } catch (JsonProcessingException e) {
+            throw new IllegalArgumentException("Некорректный формат JSON для продукта", e);
+        }
     }
 }

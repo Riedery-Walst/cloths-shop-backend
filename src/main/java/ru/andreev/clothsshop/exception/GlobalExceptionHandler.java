@@ -25,7 +25,7 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errors, HttpStatus.BAD_REQUEST);
     }
 
-    // Обработка исключения ProductNotFoundException
+    // Обработка исключения
     @ExceptionHandler(ProductNotFoundException.class)
     public ResponseEntity<Map<String, String>> handleProductNotFound(ProductNotFoundException ex) {
         Map<String, String> errorResponse = new HashMap<>();
@@ -33,19 +33,12 @@ public class GlobalExceptionHandler {
         return new ResponseEntity<>(errorResponse, HttpStatus.NOT_FOUND);
     }
 
-    // Обработка общих исключений (InvalidRequestException)
-    @ExceptionHandler(InvalidRequestException.class)
-    public ResponseEntity<Map<String, String>> handleInvalidRequest(InvalidRequestException ex) {
+    // Обработка общих исключений
+    @ExceptionHandler(TokenExpiredException.class)
+    public ResponseEntity<Map<String, String>> handleTokenExpiredException(TokenExpiredException ex) {
         Map<String, String> errorResponse = new HashMap<>();
         errorResponse.put("error", ex.getMessage());
-        return new ResponseEntity<>(errorResponse, HttpStatus.BAD_REQUEST);
+        return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
     }
 
-    // Обработка всех остальных исключений
-    @ExceptionHandler(Exception.class)
-    public ResponseEntity<Map<String, String>> handleGeneralExceptions(Exception ex) {
-        Map<String, String> errorResponse = new HashMap<>();
-        errorResponse.put("error", "An unexpected error occurred: " + ex.getMessage());
-        return new ResponseEntity<>(errorResponse, HttpStatus.INTERNAL_SERVER_ERROR);
-    }
 }
