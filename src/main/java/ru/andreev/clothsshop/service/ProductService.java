@@ -118,6 +118,7 @@ public class ProductService {
                 .map(color -> ColorDTO.builder()
                         .id(color.getId())
                         .name(color.getName())
+                        .hex(color.getHex())
                         .build())
                 .collect(Collectors.toList()));
         productDTO.setSizes(product.getSizes().stream()

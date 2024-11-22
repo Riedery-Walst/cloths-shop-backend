@@ -57,7 +57,6 @@ public class UserService {
         user.setLastName(userDTO.getLastName());
         user.setPhone(userDTO.getPhone());
 
-        // Если передан новый адрес, обновляем его
         if (userDTO.getAddress() != null) {
             Address address = convertToAddress(userDTO.getAddress());
             user.setAddress(address);
@@ -109,7 +108,7 @@ public class UserService {
         address.setCountry(addressDTO.getCountry());
         address.setCity(addressDTO.getCity());
         address.setStreet(addressDTO.getStreet());
-        address.setHouse(address.getHouse());
+        address.setHouse(addressDTO.getHouse());
         address.setApartment(addressDTO.getApartment());
         address.setPostalCode(addressDTO.getPostalCode());
         return address;
