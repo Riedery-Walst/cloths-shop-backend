@@ -22,6 +22,11 @@ public class Address {
     @NotEmpty(message = "Street is required")
     private String street;
 
+    @NotEmpty(message = "Street is required")
+    private String house;
+
+    private String apartment;
+
     @NotEmpty(message = "Postal Code is required")
     private String postalCode;
 }

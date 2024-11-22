@@ -2,6 +2,7 @@ package ru.andreev.clothsshop.controller;
 
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import ru.andreev.clothsshop.exception.UnauthorizedException;
 import ru.andreev.clothsshop.model.Cart;
 import ru.andreev.clothsshop.service.CartService;
 
@@ -18,6 +19,9 @@ public class CartController {
     // Получить корзину текущего пользователя
     @GetMapping
     public Cart getCart(Authentication authentication) {
+        if (authentication == null) {
+            throw new UnauthorizedException("Пользователь не аутентифицирован");
+        }
         String email = authentication.getName(); // Получаем email текущего пользователя
         return cartService.getCartByUser(email);
     }

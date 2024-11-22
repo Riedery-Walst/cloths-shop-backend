@@ -95,6 +95,8 @@ public class UserService {
             addressDTO.setCountry(user.getAddress().getCountry());
             addressDTO.setCity(user.getAddress().getCity());
             addressDTO.setStreet(user.getAddress().getStreet());
+            addressDTO.setHouse(user.getAddress().getHouse());
+            addressDTO.setApartment(user.getAddress().getApartment());
             addressDTO.setPostalCode(user.getAddress().getPostalCode());
             userDTO.setAddress(addressDTO);
         }
@@ -107,6 +109,8 @@ public class UserService {
         address.setCountry(addressDTO.getCountry());
         address.setCity(addressDTO.getCity());
         address.setStreet(addressDTO.getStreet());
+        address.setHouse(address.getHouse());
+        address.setApartment(addressDTO.getApartment());
         address.setPostalCode(addressDTO.getPostalCode());
         return address;
     }

@@ -36,10 +36,15 @@ public class GlobalExceptionHandler {
 
     // Обработка исключений токенов
     @ExceptionHandler(ExpiredJwtException.class)
-    public ResponseEntity<Map<String, String>> handleTokenExpiredException(ExpiredJwtException ex) {
-        Map<String, String> errorResponse = new HashMap<>();
-        errorResponse.put("error", ex.getMessage());
-        return new ResponseEntity<>(errorResponse, HttpStatus.UNAUTHORIZED);
+    public ResponseEntity<String> handleExpiredJwtException(ExpiredJwtException ex) {
+        String errorMessage = "JWT токен истек. Пожалуйста, авторизуйтесь снова.";
+        return new ResponseEntity<>(errorMessage, HttpStatus.UNAUTHORIZED);
+    }
+
+    // Обработка исключений неавторизован
+    @ExceptionHandler(UnauthorizedException.class)
+    public ResponseEntity<String> handleUnauthorizedException(UnauthorizedException ex) {
+        return new ResponseEntity<>(ex.getMessage(), HttpStatus.UNAUTHORIZED);
     }
 
 }
