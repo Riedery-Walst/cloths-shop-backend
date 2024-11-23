@@ -1,16 +1,17 @@
 package ru.andreev.clothsshop.controller;
 
 import org.springframework.http.ResponseEntity;
+import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
 import ru.andreev.clothsshop.dto.OrderDTO;
 import ru.andreev.clothsshop.dto.UserDTO;
-import ru.andreev.clothsshop.model.Order;
 import ru.andreev.clothsshop.model.OrderStatus;
 import ru.andreev.clothsshop.model.User;
 import ru.andreev.clothsshop.service.OrderService;
 import ru.andreev.clothsshop.service.UserService;
 
 import java.security.Principal;
+import java.util.List;
 
 @RestController
 @RequestMapping("/api/orders")
@@ -36,27 +37,35 @@ public class OrderController {
         return ResponseEntity.ok(new UserDTO());
     }
 
-    // Создание нового заказа с использованием DTO
-    @PostMapping("/create")
-    public ResponseEntity<OrderDTO> createOrder(@RequestBody OrderDTO orderDTO, Principal principal) {
-        User user = userService.findByEmail(principal.getName());
-        orderDTO.setUserId(user.getId());
-        Order createdOrder = orderService.createOrder(orderDTO);
-        return ResponseEntity.ok(orderService.convertToDTO(createdOrder));
+    @PostMapping
+    public ResponseEntity<OrderDTO> createOrder(
+            @RequestBody OrderDTO orderDTO,
+            Authentication authentication
+    ) {
+        String userEmail = authentication.getName();
+        OrderDTO createdOrder = orderService.createOrder(orderDTO, userEmail);
+        return ResponseEntity.ok(createdOrder);
     }
 
-    // Получение информации о заказе
-    @GetMapping("/{orderId}")
-    public OrderDTO getOrder(@PathVariable Long orderId) {
-        Order order = orderService.getOrderById(orderId);
-        return orderService.convertToDTO(order);
+    @GetMapping("/my")
+    public ResponseEntity<List<OrderDTO>> getMyOrders(Authentication authentication) {
+        String userEmail = authentication.getName(); // Получаем email пользователя
+        List<OrderDTO> orders = orderService.getOrdersByUser(userEmail);
+        return ResponseEntity.ok(orders);
     }
 
-    // Обновление статуса заказа
-    @PutMapping("/{orderId}/status")
-    public OrderDTO updateOrderStatus(@PathVariable Long orderId,
-                                      @RequestParam OrderStatus status) {
-        Order order = orderService.updateOrderStatus(orderId, status);
-        return orderService.convertToDTO(order);
+    @GetMapping("/{id}")
+    public ResponseEntity<OrderDTO> getOrderById(@PathVariable Long id) {
+        OrderDTO order = orderService.getOrderById(id);
+        return ResponseEntity.ok(order);
+    }
+
+    @PutMapping("/{id}/status")
+    public ResponseEntity<OrderDTO> updateOrderStatus(
+            @PathVariable Long id,
+            @RequestParam OrderStatus status
+    ) {
+        OrderDTO updatedOrder = orderService.updateOrderStatus(id, status);
+        return ResponseEntity.ok(updatedOrder);
     }
 }

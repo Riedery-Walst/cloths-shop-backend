@@ -21,9 +21,13 @@ public class OrderItem {
 
     private int quantity;
 
-    private double price;
+    @Column(name = "color_id")
+    private Long colorId;
+
+    @Column(name = "size_id")
+    private Long sizeId;
 
     public double getSubtotal() {
-        return price * quantity;
+        return product.getPrice() * quantity;
     }
 }

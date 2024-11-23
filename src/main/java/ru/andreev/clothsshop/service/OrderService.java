@@ -10,6 +10,7 @@ import ru.andreev.clothsshop.repository.ProductRepository;
 import ru.andreev.clothsshop.repository.UserRepository;
 
 import java.time.LocalDateTime;
+import java.util.List;
 
 @Service
 public class OrderService {
@@ -24,10 +25,10 @@ public class OrderService {
         this.userRepository = userRepository;
     }
 
-    // Создание нового заказа с использованием DTO
     @Transactional
-    public Order createOrder(OrderDTO orderDTO) {
-        User user = userRepository.findById(orderDTO.getUserId())
+    public OrderDTO createOrder(OrderDTO orderDTO, String userEmail) {
+        // Получаем пользователя по email
+        User user = userRepository.findByEmail(userEmail)
                 .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         Order order = new Order();
@@ -36,6 +37,10 @@ public class OrderService {
         order.setStatus(OrderStatus.PENDING);
 
         for (OrderItemDTO itemDTO : orderDTO.getItems()) {
+            if (itemDTO.getProductId() == null) {
+                throw new IllegalArgumentException("Product ID must not be null");
+            }
+
             if (itemDTO.getQuantity() <= 0) {
                 throw new IllegalArgumentException("Quantity must be greater than zero for product ID: " + itemDTO.getProductId());
             }
@@ -46,43 +51,54 @@ public class OrderService {
             OrderItem item = new OrderItem();
             item.setProduct(product);
             item.setQuantity(itemDTO.getQuantity());
-            item.setPrice(product.getPrice());
+            item.setColorId(itemDTO.getColorId());
+            item.setSizeId(itemDTO.getSizeId());
 
             order.addItem(item);
         }
 
         order.recalculateTotalPrice();
+        Order savedOrder = orderRepository.save(order);
 
-        return orderRepository.save(order);
+        return convertToDTO(savedOrder);
     }
 
-    // Получение заказа по его ID
-    public Order getOrderById(Long orderId) {
-        return orderRepository.findById(orderId)
+    public List<OrderDTO> getOrdersByUser(String userEmail) {
+        List<Order> orders = orderRepository.findByUserEmail(userEmail);
+        return orders.stream().map(this::convertToDTO).toList();
+    }
+
+    public OrderDTO getOrderById(Long orderId) {
+        Order order = orderRepository.findById(orderId)
                 .orElseThrow(() -> new IllegalArgumentException("Order not found"));
+        return convertToDTO(order);
     }
 
-    // Обновление статуса заказа
-    public Order updateOrderStatus(Long orderId, OrderStatus status) {
-        Order order = getOrderById(orderId);
+    public OrderDTO updateOrderStatus(Long orderId, OrderStatus status) {
+        Order order = orderRepository.findById(orderId)
+                .orElseThrow(() -> new IllegalArgumentException("Order not found"));
         order.setStatus(status);
-        return orderRepository.save(order);
+        Order updatedOrder = orderRepository.save(order);
+        return convertToDTO(updatedOrder);
     }
 
-    // Преобразование сущности Order в DTO
     public OrderDTO convertToDTO(Order order) {
         OrderDTO orderDTO = new OrderDTO();
-        orderDTO.setUserId(order.getUser().getId());
-        orderDTO.setItems(order.getItems().stream().map(item -> {
-            OrderItemDTO itemDTO = new OrderItemDTO();
-            itemDTO.setProductId(item.getProduct().getId());
-            itemDTO.setQuantity(item.getQuantity());
-            return itemDTO;
-        }).toList());
+        orderDTO.setId(order.getId());
+        orderDTO.setTotalPrice(order.getTotalPrice());
+        orderDTO.setCreatedDate(order.getCreatedDate());
+        orderDTO.setStatus(order.getStatus().name());
+        orderDTO.setItems(order.getItems().stream().map(this::convertItemToDTO).toList());
         return orderDTO;
     }
 
-    public Order saveOrder(Order order) {
-        return orderRepository.save(order);
+    private OrderItemDTO convertItemToDTO(OrderItem item) {
+        OrderItemDTO itemDTO = new OrderItemDTO();
+        itemDTO.setProductId(item.getProduct().getId());
+        itemDTO.setQuantity(item.getQuantity());
+        itemDTO.setPrice(item.getSubtotal());
+        itemDTO.setColorId(item.getColorId());
+        itemDTO.setSizeId(item.getSizeId());
+        return itemDTO;
     }
 }

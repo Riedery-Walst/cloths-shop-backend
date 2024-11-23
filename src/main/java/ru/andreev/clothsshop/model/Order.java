@@ -31,7 +31,7 @@ public class Order {
     private OrderStatus status;
 
     @OneToOne
-    @JoinColumn(name = "payment_id") // указываем внешний ключ в таблице orders
+    @JoinColumn(name = "payment_id")
     private Payment payment;
 
     // Метод для добавления элементов заказа
