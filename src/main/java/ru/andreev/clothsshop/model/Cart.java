@@ -26,19 +26,6 @@ public class Cart {
 
     private double totalPrice;
 
-    // Добавить товар в корзину
-    public void addItem(CartItem item) {
-        this.items.add(item);
-        item.setCart(this);
-        recalculateTotalPrice();
-    }
-
-    // Удалить товар из корзины
-    public void removeItem(CartItem item) {
-        this.items.remove(item);
-        recalculateTotalPrice();
-    }
-
     // Пересчитать общую стоимость корзины
     public void recalculateTotalPrice() {
         this.totalPrice = items.stream().mapToDouble(CartItem::getSubtotal).sum();

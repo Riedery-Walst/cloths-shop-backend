@@ -2,6 +2,8 @@ package ru.andreev.clothsshop.service;
 
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import ru.andreev.clothsshop.dto.CartDTO;
+import ru.andreev.clothsshop.dto.CartItemDTO;
 import ru.andreev.clothsshop.model.Cart;
 import ru.andreev.clothsshop.model.CartItem;
 import ru.andreev.clothsshop.model.Product;
@@ -11,6 +13,7 @@ import ru.andreev.clothsshop.repository.ProductRepository;
 import ru.andreev.clothsshop.repository.UserRepository;
 
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class CartService {
@@ -26,15 +29,14 @@ public class CartService {
         this.productRepository = productRepository;
     }
 
-    // Получение корзины по email пользователя
-    public Cart getCartByUser(String email) {
+    public CartDTO getCartByUser(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
-        return cartRepository.findByUser(user).orElseGet(() -> createCartForUser(user));
+        Cart cart = cartRepository.findByUser(user).orElseGet(() -> createCartForUser(user));
+        return convertToDTO(cart);
     }
 
-    // Добавление продукта в корзину
-    public Cart addProductToCart(String email, Long productId, int quantity, Long colorId, Long sizeId) {
+    public CartDTO addProductToCart(String email, Long productId, int quantity, Long colorId, Long sizeId) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -47,11 +49,9 @@ public class CartService {
                 .findFirst();
 
         if (existingItem.isPresent()) {
-            // Если продукт уже в корзине с указанным цветом и размером, увеличиваем его количество
             CartItem item = existingItem.get();
             item.setQuantity(item.getQuantity() + quantity);
         } else {
-            // Если продукта нет в корзине, добавляем новый элемент
             Product product = productRepository.findById(productId)
                     .orElseThrow(() -> new RuntimeException("Product not found"));
 
@@ -64,11 +64,11 @@ public class CartService {
             cart.getItems().add(newItem);
         }
 
-        return cartRepository.save(cart);
+        cart.recalculateTotalPrice();
+        return convertToDTO(cartRepository.save(cart));
     }
 
-    // Удаление продукта из корзины
-    public Cart removeProductFromCart(String email, Long cartItemId) {
+    public CartDTO removeProductFromCart(String email, Long cartItemId) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -77,11 +77,10 @@ public class CartService {
 
         cart.getItems().removeIf(item -> item.getId().equals(cartItemId));
         cart.recalculateTotalPrice();
-        return cartRepository.save(cart);
+        return convertToDTO(cartRepository.save(cart));
     }
 
-    // Очистка корзины
-    public Cart clearCart(String email) {
+    public CartDTO clearCart(String email) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -90,18 +89,10 @@ public class CartService {
 
         cart.getItems().clear();
         cart.recalculateTotalPrice();
-
-        return cartRepository.save(cart);
+        return convertToDTO(cartRepository.save(cart));
     }
 
-    // Создание новой корзины для пользователя
-    private Cart createCartForUser(User user) {
-        Cart cart = new Cart();
-        cart.setUser(user);
-        return cartRepository.save(cart);
-    }
-
-    public Cart updateCartItemQuantity(String email, Long cartItemId, int quantity) {
+    public CartDTO updateCartItemQuantity(String email, Long cartItemId, int quantity) {
         User user = userRepository.findByEmail(email)
                 .orElseThrow(() -> new RuntimeException("User not found"));
 
@@ -116,6 +107,33 @@ public class CartService {
         item.setQuantity(quantity);
         cart.recalculateTotalPrice();
 
+        return convertToDTO(cartRepository.save(cart));
+    }
+
+    private Cart createCartForUser(User user) {
+        Cart cart = new Cart();
+        cart.setUser(user);
         return cartRepository.save(cart);
+    }
+
+    private CartDTO convertToDTO(Cart cart) {
+        CartDTO cartDTO = new CartDTO();
+        cartDTO.setId(cart.getId());
+        cartDTO.setTotalPrice(cart.getTotalPrice());
+        cartDTO.setItems(cart.getItems().stream()
+                .map(this::convertToDTO)
+                .collect(Collectors.toList()));
+        return cartDTO;
+    }
+
+    private CartItemDTO convertToDTO(CartItem item) {
+        CartItemDTO itemDTO = new CartItemDTO();
+        itemDTO.setId(item.getId());
+        itemDTO.setProductId(item.getProduct().getId());
+        itemDTO.setQuantity(item.getQuantity());
+        itemDTO.setColorId(item.getColorId());
+        itemDTO.setSizeId(item.getSizeId());
+        itemDTO.setSubtotal(item.getSubtotal());
+        return itemDTO;
     }
 }
