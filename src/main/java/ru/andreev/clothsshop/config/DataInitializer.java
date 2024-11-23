@@ -4,6 +4,7 @@ import org.springframework.boot.CommandLineRunner;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.security.crypto.password.PasswordEncoder;
+import ru.andreev.clothsshop.model.Address;
 import ru.andreev.clothsshop.model.Role;
 import ru.andreev.clothsshop.model.User;
 import ru.andreev.clothsshop.repository.UserRepository;
@@ -26,6 +27,15 @@ public class DataInitializer {
                 admin.setLastName("User");
                 admin.setPhone("000-000-0000");
                 admin.setRole(Role.ADMIN);
+
+                Address adminAddress = new Address();
+                adminAddress.setCountry("Россия");
+                adminAddress.setCity("Уфа");
+                adminAddress.setStreet("Николая Дмитриева");
+                adminAddress.setHouse("1");
+                adminAddress.setApartment("148");
+                adminAddress.setPostalCode("450097");
+                admin.setAddress(adminAddress);
 
                 userRepository.save(admin);
                 System.out.println("Администратор создан: " + adminEmail);
