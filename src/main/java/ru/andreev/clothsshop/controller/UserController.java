@@ -46,4 +46,11 @@ public class UserController {
         boolean exists = userService.emailExists(email);
         return ResponseEntity.ok(exists);
     }
+
+    @DeleteMapping("/profile")
+    public ResponseEntity<Void> deleteUserProfile(Authentication authentication) {
+        String email = authentication.getName();
+        userService.deleteUserProfile(email);
+        return ResponseEntity.noContent().build();
+    }
 }
