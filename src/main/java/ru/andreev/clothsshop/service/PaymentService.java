@@ -1,6 +1,7 @@
 package ru.andreev.clothsshop.service;
 
 import jakarta.transaction.Transactional;
+import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.*;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -23,6 +24,7 @@ import java.util.Map;
 import java.util.UUID;
 
 @Service
+@Slf4j
 public class PaymentService {
 
     private final PaymentRepository paymentRepository;
@@ -65,7 +67,7 @@ public class PaymentService {
         ));
         requestBody.put("confirmation", Map.of(
                 "type", "redirect",
-                "return_url", RETURN_URL // Замените на ваш реальный URL
+                "return_url", RETURN_URL
         ));
         requestBody.put("description", "Оплата заказа №" + order.getId());
         requestBody.put("capture", true);
@@ -104,41 +106,72 @@ public class PaymentService {
         Payment payment = paymentRepository.findById(paymentId)
                 .orElseThrow(() -> new IllegalArgumentException("Payment not found"));
 
-        String url = API_URL + payment.getPaymentId();
+        String url = API_URL + "/" + payment.getPaymentId(); // API_URL + ID платежа
+
         HttpHeaders headers = new HttpHeaders();
-        headers.setBasicAuth(SHOP_ID, SECRET_KEY);
+        headers.setBasicAuth(SHOP_ID, SECRET_KEY); // Авторизация с помощью BasicAuth
         HttpEntity<String> entity = new HttpEntity<>(headers);
 
         // Отправка запроса и проверка ответа
-        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(url, HttpMethod.GET, entity, (Class<Map<String, Object>>)(Class<?>)Map.class);
+        ResponseEntity<Map<String, Object>> response = restTemplate.exchange(
+                url, HttpMethod.GET, entity, (Class<Map<String, Object>>)(Class<?>)Map.class
+        );
+
         Map<String, Object> paymentData = response.getBody();
 
         // Проверка, что paymentData не null
         if (paymentData != null) {
             String status = (String) paymentData.get("status");
 
-            if ("succeeded".equals(status)) {
-                payment.setStatus("succeeded");
-                Order order = payment.getOrder();
-                order.setStatus(OrderStatus.PAID);
-                paymentRepository.save(payment);
-                orderRepository.save(order);
-            } else if ("canceled".equals(status)) {
-                payment.setStatus("canceled");
-                Order order = payment.getOrder();
-                order.setStatus(OrderStatus.CANCELED);
-                paymentRepository.save(payment);
-                orderRepository.save(order);
+            // Обработка различных состояний платежа
+            switch (status) {
+                case "succeeded" -> {
+                    // Если статус изменился на "succeeded" и платеж ещё не был обновлен
+                    if (!"succeeded".equals(payment.getStatus())) {
+                        payment.setStatus("succeeded");
+                        Order order = payment.getOrder();
+                        order.setStatus(OrderStatus.PAID); // Изменяем статус заказа на "PAID"
+                        paymentRepository.save(payment);
+                        orderRepository.save(order);
+                        // Логируем успешное завершение платежа
+                        log.info("Payment succeeded for order: " + order.getId());
+                    }
+                }
+                case "canceled" -> {
+                    // Если статус изменился на "canceled"
+                    if (!"canceled".equals(payment.getStatus())) {
+                        payment.setStatus("canceled");
+                        Order order = payment.getOrder();
+                        order.setStatus(OrderStatus.CANCELED); // Изменяем статус заказа на "CANCELED"
+                        paymentRepository.save(payment);
+                        orderRepository.save(order);
+                        // Логируем отмену платежа
+                        log.info("Payment canceled for order: " + payment.getOrder().getId());
+                    }
+                }
+                case "waiting_for_capture" -> {
+                    // Если статус в ожидании
+                    if (!"waiting_for_capture".equals(payment.getStatus())) {
+                        payment.setStatus("waiting_for_capture");
+                        paymentRepository.save(payment);
+                        // Логируем, что платеж в ожидании
+                        log.info("Payment is waiting for capture for order: " + payment.getOrder().getId());
+                    }
+                }
+                case null, default ->
+                    // Логируем, если статус непредсказуемый или новый
+                        log.warn("Received unexpected payment status: " + status + " for payment ID: " + payment.getId());
             }
         } else {
-            // Логируем ошибку или обрабатываем случай отсутствия данных
+            // Логируем ошибку, если данные не получены
             throw new RuntimeException("Failed to retrieve payment data from YooKassa");
         }
     }
 
-    @Scheduled(fixedRate = 60000) // Every 60 seconds
+    @Scheduled(fixedRate = 60000) // Проверка каждые 60 секунд
     public void checkPendingPayments() {
-        List<Payment> pendingPayments = paymentRepository.findByStatus("waiting_for_capture");
+        // Проверяем все платежи со статусом "pending"
+        List<Payment> pendingPayments = paymentRepository.findByStatus("pending");
         for (Payment payment : pendingPayments) {
             checkPaymentStatus(payment.getId());
         }
