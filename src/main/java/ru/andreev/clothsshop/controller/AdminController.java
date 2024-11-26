@@ -8,12 +8,11 @@ import org.springframework.web.multipart.MultipartFile;
 import ru.andreev.clothsshop.dto.ColorDTO;
 import ru.andreev.clothsshop.dto.ProductDTO;
 import ru.andreev.clothsshop.dto.SizeDTO;
-import ru.andreev.clothsshop.service.ColorService;
-import ru.andreev.clothsshop.service.ProductService;
-import ru.andreev.clothsshop.service.SizeService;
-import ru.andreev.clothsshop.service.UserService;
+import ru.andreev.clothsshop.model.Payment;
+import ru.andreev.clothsshop.service.*;
 
 import java.util.List;
+import java.util.Optional;
 
 @RestController
 @RequestMapping("/api/admin")
@@ -22,12 +21,14 @@ public class AdminController {
     private final ProductService productService;
     private final SizeService sizeService;
     private final ColorService colorService;
+    private final PaymentService paymentService;
 
-    public AdminController(UserService userService, ProductService productService, SizeService sizeService, ColorService colorService) {
+    public AdminController(UserService userService, ProductService productService, SizeService sizeService, ColorService colorService, PaymentService paymentService) {
         this.userService = userService;
         this.productService = productService;
         this.sizeService = sizeService;
         this.colorService = colorService;
+        this.paymentService = paymentService;
     }
 
     // Промоция пользователя в администратора
@@ -114,5 +115,19 @@ public class AdminController {
         } catch (JsonProcessingException e) {
             throw new IllegalArgumentException("Некорректный формат JSON для продукта", e);
         }
+    }
+
+    // Получение платежа
+    @GetMapping("/{paymentId}")
+    public ResponseEntity<Payment> getPaymentById(@PathVariable Long paymentId) {
+        Optional<Payment> payment = paymentService.getPaymentById(paymentId);
+        return payment.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
+    }
+
+    // Получение всех платежей
+    @GetMapping("/payments")
+    public ResponseEntity<List<Payment>> getAllPayments() {
+        List<Payment> payments = paymentService.getAllPayments();
+        return ResponseEntity.ok(payments);
     }
 }
