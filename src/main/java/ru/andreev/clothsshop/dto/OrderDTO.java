@@ -16,4 +16,5 @@ public class OrderDTO {
     private double totalPrice;
     private LocalDateTime createdDate;
     private String status;
+    private UserDTO owner;
 }

@@ -10,7 +10,7 @@ import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
 import org.springframework.web.bind.annotation.*;
 import ru.andreev.clothsshop.dto.CustomUserDetails;
-import ru.andreev.clothsshop.dto.UserDTO;
+import ru.andreev.clothsshop.dto.LoginDTO;
 import ru.andreev.clothsshop.model.User;
 import ru.andreev.clothsshop.util.JwtTokenUtil;
 
@@ -30,13 +30,13 @@ public class AuthController {
 
     // Логин и получение JWT токена
     @PostMapping("/login")
-    public ResponseEntity<?> authenticateUser(@RequestBody UserDTO userDTO) {
+    public ResponseEntity<?> authenticateUser(@RequestBody LoginDTO loginDTO) {
         try {
             // Аутентификация пользователя через authenticationManager
             Authentication authentication = authenticationManager.authenticate(
                     new UsernamePasswordAuthenticationToken(
-                            userDTO.getEmail(),
-                            userDTO.getPassword()
+                            loginDTO.getEmail(),
+                            loginDTO.getPassword()
                     )
             );
 

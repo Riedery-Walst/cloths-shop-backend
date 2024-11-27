@@ -54,18 +54,6 @@ public class OrderController {
         return ResponseEntity.ok(orders);
     }
 
-    @GetMapping
-    public ResponseEntity<List<OrderDTO>> getAllOrders() {
-        List<OrderDTO> orders = orderService.getAllOrders();
-        return ResponseEntity.ok(orders);
-    }
-
-    @GetMapping("/{id}")
-    public ResponseEntity<OrderDTO> getOrderById(@PathVariable Long id) {
-        OrderDTO order = orderService.getOrderById(id);
-        return ResponseEntity.ok(order);
-    }
-
     @PutMapping("/{id}/status")
     public ResponseEntity<OrderDTO> updateOrderStatus(
             @PathVariable Long id,

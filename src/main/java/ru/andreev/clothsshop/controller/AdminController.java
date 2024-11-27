@@ -2,10 +2,12 @@ package ru.andreev.clothsshop.controller;
 
 import com.fasterxml.jackson.core.JsonProcessingException;
 import com.fasterxml.jackson.databind.ObjectMapper;
+import org.springframework.data.domain.Page;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 import org.springframework.web.multipart.MultipartFile;
 import ru.andreev.clothsshop.dto.ColorDTO;
+import ru.andreev.clothsshop.dto.OrderDTO;
 import ru.andreev.clothsshop.dto.ProductDTO;
 import ru.andreev.clothsshop.dto.SizeDTO;
 import ru.andreev.clothsshop.model.Payment;
@@ -22,13 +24,15 @@ public class AdminController {
     private final SizeService sizeService;
     private final ColorService colorService;
     private final PaymentService paymentService;
+    private final OrderService orderService;
 
-    public AdminController(UserService userService, ProductService productService, SizeService sizeService, ColorService colorService, PaymentService paymentService) {
+    public AdminController(UserService userService, ProductService productService, SizeService sizeService, ColorService colorService, PaymentService paymentService, OrderService orderService) {
         this.userService = userService;
         this.productService = productService;
         this.sizeService = sizeService;
         this.colorService = colorService;
         this.paymentService = paymentService;
+        this.orderService = orderService;
     }
 
     // Промоция пользователя в администратора
@@ -118,7 +122,7 @@ public class AdminController {
     }
 
     // Получение платежа
-    @GetMapping("/{paymentId}")
+    @GetMapping("/payments/{paymentId}")
     public ResponseEntity<Payment> getPaymentById(@PathVariable Long paymentId) {
         Optional<Payment> payment = paymentService.getPaymentById(paymentId);
         return payment.map(ResponseEntity::ok).orElseGet(() -> ResponseEntity.notFound().build());
@@ -129,5 +133,28 @@ public class AdminController {
     public ResponseEntity<List<Payment>> getAllPayments() {
         List<Payment> payments = paymentService.getAllPayments();
         return ResponseEntity.ok(payments);
+    }
+
+    @GetMapping("/orders")
+    public ResponseEntity<Page<OrderDTO>> getAllOrders(
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Page<OrderDTO> orders = orderService.getAllOrders(page, size);
+        return ResponseEntity.ok(orders);
+    }
+
+    @GetMapping("/orders/{id}")
+    public ResponseEntity<OrderDTO> getOrderById(@PathVariable Long id) {
+        OrderDTO order = orderService.getOrderById(id);
+        return ResponseEntity.ok(order);
+    }
+
+    @GetMapping("/user")
+    public ResponseEntity<Page<OrderDTO>> getOrdersByUser(
+            @RequestParam String userEmail,
+            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "10") int size) {
+        Page<OrderDTO> orders = orderService.getOrdersByUser(userEmail, page, size);
+        return ResponseEntity.ok(orders);
     }
 }

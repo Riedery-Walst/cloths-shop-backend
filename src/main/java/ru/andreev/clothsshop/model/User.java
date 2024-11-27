@@ -4,6 +4,9 @@ import com.fasterxml.jackson.annotation.JsonManagedReference;
 import jakarta.persistence.*;
 import lombok.Data;
 
+import java.util.ArrayList;
+import java.util.List;
+
 @Entity
 @Data
 @Table(name = "users")
@@ -28,11 +31,14 @@ public class User {
     @Enumerated(EnumType.STRING)
     private Role role;
 
-    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER, optional = true)
+    @OneToOne(cascade = CascadeType.ALL, fetch = FetchType.EAGER)
     @JoinColumn(name = "address_id", referencedColumnName = "id")
     private Address address;
 
     @OneToOne(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
     @JsonManagedReference
     private Cart cart;
+
+    @OneToMany(mappedBy = "user", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<Order> orders = new ArrayList<>();
 }

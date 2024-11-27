@@ -3,6 +3,7 @@ package ru.andreev.clothsshop.service;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import ru.andreev.clothsshop.dto.AddressDTO;
+import ru.andreev.clothsshop.dto.RegisterDTO;
 import ru.andreev.clothsshop.dto.UserDTO;
 import ru.andreev.clothsshop.model.Address;
 import ru.andreev.clothsshop.model.Role;
@@ -19,24 +20,17 @@ public class UserService {
         this.passwordEncoder = passwordEncoder;
     }
 
-    public User registerUser(UserDTO userDTO) {
-        if (userRepository.existsByEmail(userDTO.getEmail())) {
+    public User registerUser(RegisterDTO registerDTO) {
+        if (userRepository.existsByEmail(registerDTO.getEmail())) {
             throw new IllegalArgumentException("Email is already in use.");
         }
 
         User user = new User();
-        user.setEmail(userDTO.getEmail());
-        user.setPassword(passwordEncoder.encode(userDTO.getPassword()));
-        user.setFirstName(userDTO.getFirstName());
-        user.setLastName(userDTO.getLastName());
-        user.setPhone(userDTO.getPhone());
+        user.setEmail(registerDTO.getEmail());
+        user.setPassword(passwordEncoder.encode(registerDTO.getPassword()));
+        user.setFirstName(registerDTO.getFirstName());
+        user.setLastName(registerDTO.getLastName());
         user.setRole(Role.USER);
-
-        // Если адрес передан, добавляем его
-        if (userDTO.getAddress() != null) {
-            Address address = convertToAddress(userDTO.getAddress());
-            user.setAddress(address);
-        }
 
         return userRepository.save(user);
     }

@@ -4,6 +4,7 @@ import jakarta.validation.Valid;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.core.Authentication;
 import org.springframework.web.bind.annotation.*;
+import ru.andreev.clothsshop.dto.RegisterDTO;
 import ru.andreev.clothsshop.dto.UserDTO;
 import ru.andreev.clothsshop.model.User;
 import ru.andreev.clothsshop.service.UserService;
@@ -30,7 +31,7 @@ public class UserController {
     }
 
     @PostMapping("/register")
-    public ResponseEntity<User> registerUser(@Valid @RequestBody UserDTO userDTO) {
+    public ResponseEntity<User> registerUser(@Valid @RequestBody RegisterDTO userDTO) {
         User registeredUser = userService.registerUser(userDTO);
         return ResponseEntity.ok(registeredUser);
     }
