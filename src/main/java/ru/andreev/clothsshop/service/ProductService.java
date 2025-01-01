@@ -96,6 +96,12 @@ public class ProductService {
                 .collect(Collectors.toList());
     }
 
+    public String getProductName(Long id) {
+        Product product = productRepository.findById(id)
+                .orElseThrow(() -> new ProductNotFoundException(id));
+        return product.getName();
+    }
+
     private Product convertToEntity(ProductDTO productDTO) {
         Product product = new Product();
         product.setName(productDTO.getName());

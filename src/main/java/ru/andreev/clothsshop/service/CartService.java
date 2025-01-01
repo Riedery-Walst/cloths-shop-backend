@@ -4,6 +4,7 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import ru.andreev.clothsshop.dto.CartDTO;
 import ru.andreev.clothsshop.dto.CartItemDTO;
+import ru.andreev.clothsshop.exception.ProductNotFoundException;
 import ru.andreev.clothsshop.model.Cart;
 import ru.andreev.clothsshop.model.CartItem;
 import ru.andreev.clothsshop.model.Product;
@@ -53,7 +54,7 @@ public class CartService {
             item.setQuantity(item.getQuantity() + quantity);
         } else {
             Product product = productRepository.findById(productId)
-                    .orElseThrow(() -> new RuntimeException("Product not found"));
+                    .orElseThrow(() -> new ProductNotFoundException(productId));
 
             CartItem newItem = new CartItem();
             newItem.setProduct(product);

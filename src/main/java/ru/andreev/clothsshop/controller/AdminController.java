@@ -152,7 +152,7 @@ public class AdminController {
     @GetMapping("/user")
     public ResponseEntity<Page<OrderDTO>> getOrdersByUser(
             @RequestParam String userEmail,
-            @RequestParam(defaultValue = "0") int page,
+            @RequestParam(defaultValue = "1") int page,
             @RequestParam(defaultValue = "10") int size) {
         Page<OrderDTO> orders = orderService.getOrdersByUser(userEmail, page, size);
         return ResponseEntity.ok(orders);

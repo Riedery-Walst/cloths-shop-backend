@@ -1,8 +1,6 @@
 package ru.andreev.clothsshop.util;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -63,10 +61,21 @@ public class JwtTokenUtil {
     }
 
     private Claims extractAllClaims(String token) {
-        return Jwts.parserBuilder()
-                .setSigningKey(getKey())
-                .build()
-                .parseClaimsJws(token)
-                .getBody();
+        try {
+            return Jwts.parserBuilder()
+                    .setSigningKey(getKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (ExpiredJwtException e) {
+            // Бросаем исключение с более подробным сообщением
+            throw new ExpiredJwtException(null, null, "Token has expired", e);
+        } catch (JwtException e) {
+            // Ловим другие ошибки токена
+            throw new JwtException("Invalid token: " + e.getMessage(), e);
+        } catch (Exception e) {
+            // Логируем и выбрасываем любое другое исключение
+            throw new JwtException("Error parsing the token", e);
+        }
     }
 }

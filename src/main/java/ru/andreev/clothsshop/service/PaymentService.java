@@ -96,8 +96,8 @@ public class PaymentService {
                 case "canceled":
                     updatePaymentStatus(payment, OrderStatus.CANCELED, "canceled");
                     break;
-                case "waiting_for_capture":
-                    updatePaymentStatus(payment, null, "waiting_for_capture");
+                case "pending":
+                    updatePaymentStatus(payment, OrderStatus.PENDING, "pending");
                     break;
                 default:
                     log.warn("Unexpected payment status: " + status + " for payment ID: " + payment.getId());

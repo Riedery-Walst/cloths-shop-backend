@@ -8,7 +8,6 @@ import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
 import org.springframework.security.crypto.bcrypt.BCryptPasswordEncoder;
 import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.security.web.AuthenticationEntryPoint;
 import org.springframework.security.web.SecurityFilterChain;
 import org.springframework.security.web.authentication.UsernamePasswordAuthenticationFilter;
 import org.springframework.web.cors.CorsConfiguration;
@@ -22,11 +21,9 @@ import java.util.List;
 public class SecurityConfig {
 
     private final JwtTokenFilter jwtTokenFilter;
-    private final AuthenticationEntryPoint jwtAuthenticationEntryPoint;
 
-    public SecurityConfig(JwtTokenFilter jwtTokenFilter, AuthenticationEntryPoint jwtAuthenticationEntryPoint) {
+    public SecurityConfig(JwtTokenFilter jwtTokenFilter) {
         this.jwtTokenFilter = jwtTokenFilter;
-        this.jwtAuthenticationEntryPoint = jwtAuthenticationEntryPoint;
     }
 
     @Bean
@@ -40,10 +37,6 @@ public class SecurityConfig {
                         .requestMatchers("/api/auth/**", "/api/users/register", "/api/products/**").permitAll()
                         .requestMatchers("/api/admin/**").hasRole("ADMIN")  // Только ADMIN может доступиться к /api/admin/**
                         .anyRequest().permitAll()  // Все остальные запросы требуют аутентификации
-                )
-                // Указываем обработчик ошибок аутентификации
-                .exceptionHandling(exceptions -> exceptions
-                        .authenticationEntryPoint(jwtAuthenticationEntryPoint)
                 )
                 // Настройка безсессионного управления
                 .sessionManagement(session -> session
