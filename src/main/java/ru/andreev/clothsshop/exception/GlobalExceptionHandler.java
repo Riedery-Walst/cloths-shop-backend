@@ -37,7 +37,7 @@ public class GlobalExceptionHandler {
     // Обработка исключений токенов
     @ExceptionHandler(ExpiredJwtException.class)
     public ResponseEntity<String> handleExpiredJwtException(ExpiredJwtException ex) {
-        String errorMessage = "JWT токен истек. Пожалуйста, авторизуйтесь снова.";
+        String errorMessage = "JWT is expired";
         return new ResponseEntity<>(errorMessage, HttpStatus.UNAUTHORIZED);
     }
 

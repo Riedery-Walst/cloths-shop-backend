@@ -49,11 +49,11 @@ public class ProductService {
 
     public ProductDTO updateProduct(ProductDTO productDTO, List<MultipartFile> photos) {
         if (productDTO == null) {
-            throw new IllegalArgumentException("ProductDTO не может быть null");
+            throw new IllegalArgumentException("ProductDTO should not be null");
         }
 
         Product product = productRepository.findById(productDTO.getId())
-                .orElseThrow(() -> new RuntimeException("Продукт с ID " + productDTO.getId() + " не найден"));
+                .orElseThrow(() -> new RuntimeException("Product with ID " + productDTO.getId() + " not found"));
 
         // Обновление данных продукта
         product.setName(productDTO.getName());
@@ -144,7 +144,7 @@ public class ProductService {
         }
         return colorDTOs.stream()
                 .map(colorDTO -> colorRepository.findById(colorDTO.getId())
-                        .orElseThrow(() -> new RuntimeException("Цвет с ID " + colorDTO.getId() + " не найден")))
+                        .orElseThrow(() -> new RuntimeException("Color with ID " + colorDTO.getId() + " not found")))
                 .collect(Collectors.toList());  // Ensure this returns a mutable list
     }
 
@@ -154,7 +154,7 @@ public class ProductService {
         }
         return sizeDTOs.stream()
                 .map(sizeDTO -> sizeRepository.findById(sizeDTO.getId())
-                        .orElseThrow(() -> new RuntimeException("Размер с ID " + sizeDTO.getId() + " не найден")))
+                        .orElseThrow(() -> new RuntimeException("Size with ID " + sizeDTO.getId() + " not found")))
                 .collect(Collectors.toList());  // Ensure this returns a mutable list
     }
 }

@@ -47,7 +47,7 @@ public class ProductPhotoService {
 
             return productPhotoRepository.save(photo);
         } catch (IOException e) {
-            throw new RuntimeException("Ошибка при сохранении изображения", e);
+            throw new RuntimeException("Error when saving an image", e);
         }
     }
 
@@ -64,7 +64,7 @@ public class ProductPhotoService {
             Files.deleteIfExists(Paths.get(photo.getPhotoUrl()));
             productPhotoRepository.delete(photo);
         } catch (IOException e) {
-            throw new RuntimeException("Ошибка при удалении изображения", e);
+            throw new RuntimeException("Error when deleting an image", e);
         }
     }
 }

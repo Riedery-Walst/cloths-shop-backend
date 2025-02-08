@@ -25,7 +25,7 @@ public class ColorService {
     public ColorDTO getColorById(Long id) {
         return colorRepository.findById(id)
                 .map(this::convertToDTO)
-                .orElseThrow(() -> new RuntimeException("Цвет не найден с ID: " + id));
+                .orElseThrow(() -> new RuntimeException("Color not found with ID: " + id));
     }
 
     public ColorDTO createColor(ColorDTO colorDTO) {
@@ -42,7 +42,7 @@ public class ColorService {
             color.setHex(colorDTO.getHex());
             Color updatedColor = colorRepository.save(color);
             return convertToDTO(updatedColor);
-        }).orElseThrow(() -> new RuntimeException("Цвет не найден с ID: " + id));
+        }).orElseThrow(() -> new RuntimeException("Color not found with ID: " + id));
     }
 
     public void deleteColor(Long id) {

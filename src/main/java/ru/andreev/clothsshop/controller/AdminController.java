@@ -36,7 +36,7 @@ public class AdminController {
     }
 
     // Промоция пользователя в администратора
-    @PostMapping("/users/promote")
+    @PutMapping("/users/promote")
     public ResponseEntity<?> promoteUser(@RequestParam String email) {
         return ResponseEntity.ok(userService.makeAdmin(email));
     }
@@ -97,7 +97,7 @@ public class AdminController {
             @RequestPart("product") String productJson,
             @RequestPart(value = "photos", required = false) List<MultipartFile> photos) {
         if (productJson == null || productJson.isEmpty()) {
-            throw new IllegalArgumentException("Данные продукта не могут быть пустыми");
+            throw new IllegalArgumentException("Product data should not be empty");
         }
         ProductDTO productDTO = convertJsonToProductDTO(productJson);
         productDTO.setId(id);
@@ -117,7 +117,7 @@ public class AdminController {
             ObjectMapper objectMapper = new ObjectMapper();
             return objectMapper.readValue(productJson, ProductDTO.class);
         } catch (JsonProcessingException e) {
-            throw new IllegalArgumentException("Некорректный формат JSON для продукта", e);
+            throw new IllegalArgumentException("Invalid format JSON for product", e);
         }
     }
 

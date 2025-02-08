@@ -138,18 +138,39 @@ public class PaymentService {
         validatePaymentAmount(paymentRequest, order);
 
         Map<String, Object> requestBody = buildPaymentRequestBody(order);
-
         String idempotenceKey = UUID.randomUUID().toString();
-
         HttpHeaders headers = buildHttpHeaders(idempotenceKey);
         HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
 
-        try {
-            ResponseEntity<PaymentResponse> responseEntity = restTemplate.exchange(API_URL, HttpMethod.POST, requestEntity, PaymentResponse.class);
-            return handlePaymentResponse(responseEntity.getBody(), paymentRequest, order);
-        } catch (HttpClientErrorException e) {
-            throw new RuntimeException("An unexpected error occurred: " + e.getStatusCode() + " : " + e.getResponseBodyAsString());
+        int maxRetries = 10;
+        long initialDelay = 1000;
+        double backoffMultiplier = 2.0;
+
+        for (int attempt = 0; attempt < maxRetries; attempt++) {
+            try {
+                ResponseEntity<PaymentResponse> responseEntity = restTemplate.exchange(
+                        API_URL, HttpMethod.POST, requestEntity, PaymentResponse.class
+                );
+                return handlePaymentResponse(responseEntity.getBody(), paymentRequest, order);
+            } catch (HttpClientErrorException e) {
+                if (e.getStatusCode() == HttpStatus.TOO_MANY_REQUESTS) {
+                    // Если ошибка 429, вычисляем задержку и ждем
+                    long delay = (long) (initialDelay * Math.pow(backoffMultiplier, attempt));
+                    try {
+                        Thread.sleep(delay); // Приостанавливаем выполнение на вычисленное время
+                    } catch (InterruptedException ie) {
+                        Thread.currentThread().interrupt();
+                        throw new RuntimeException("Thread interrupted during backoff", ie);
+                    }
+                } else {
+                    // Если это другая ошибка, выбрасываем исключение
+                    throw new RuntimeException("An unexpected error occurred: " + e.getStatusCode() + " : " + e.getResponseBodyAsString());
+                }
+            }
         }
+
+        // Если все попытки исчерпаны, выбрасываем исключение
+        throw new RuntimeException("Max retries (" + maxRetries + ") exceeded for payment creation.");
     }
 
     private Order getOrderOrThrow(Long orderId) {

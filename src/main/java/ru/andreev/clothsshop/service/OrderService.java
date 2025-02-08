@@ -39,7 +39,7 @@ public class OrderService {
     public OrderDTO createOrder(OrderDTO orderDTO, String userEmail) {
         // Получаем пользователя из репозитория
         User user = userRepository.findByEmail(userEmail)
-                .orElseThrow(() -> new IllegalArgumentException("Пользователь не найден"));
+                .orElseThrow(() -> new IllegalArgumentException("User not found"));
 
         // Создаем новый объект заказа
         Order order = new Order();
@@ -50,17 +50,17 @@ public class OrderService {
         // Обрабатываем каждый товар в заказе
         for (OrderItemDTO itemDTO : orderDTO.getItems()) {
             if (itemDTO.getProductId() == null) {
-                throw new IllegalArgumentException("ID товара не может быть null");
+                throw new IllegalArgumentException("ID should not be null");
             }
 
             if (itemDTO.getQuantity() <= 0) {
                 throw new IllegalArgumentException(
-                        "Количество должно быть больше нуля для товара с ID: " + itemDTO.getProductId());
+                        "Quantity should be more than zero for product ID: " + itemDTO.getProductId());
             }
 
             // Получаем товар из репозитория
             Product product = productRepository.findById(itemDTO.getProductId())
-                    .orElseThrow(() -> new IllegalArgumentException("Товар не найден"));
+                    .orElseThrow(() -> new IllegalArgumentException("Product not found"));
 
             // Обновляем количество товара в репозитории
             product.setQuantity(product.getQuantity() - itemDTO.getQuantity());
@@ -91,7 +91,7 @@ public class OrderService {
         List<CartItem> cartItems = cartItemRepository.findByCartUserId(user.getId());
         if (!cartItems.isEmpty()) {
             cartItemRepository.deleteAll(cartItems);  // Удаляем все элементы из корзины
-            log.info("Корзина очищена для пользователя: " + user.getEmail());
+            log.info("Shopping cart is cleared for " + user.getEmail());
         }
     }
 
@@ -108,7 +108,7 @@ public class OrderService {
 
     public OrderDTO getOrderById(Long orderId) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new IllegalArgumentException("Заказ не найден"));
+                .orElseThrow(() -> new IllegalArgumentException("Order not found"));
         return convertToDTO(order);
     }
 
@@ -120,7 +120,7 @@ public class OrderService {
 
     public OrderDTO updateOrderStatus(Long orderId, OrderStatus status) {
         Order order = orderRepository.findById(orderId)
-                .orElseThrow(() -> new IllegalArgumentException("Заказ не найден"));
+                .orElseThrow(() -> new IllegalArgumentException("Order not found"));
         order.setStatus(status);
         Order updatedOrder = orderRepository.save(order);
         return convertToDTO(updatedOrder);

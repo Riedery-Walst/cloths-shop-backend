@@ -69,7 +69,7 @@ public class JwtTokenUtil {
                     .getBody();
         } catch (ExpiredJwtException e) {
             // Бросаем исключение с более подробным сообщением
-            throw new ExpiredJwtException(null, null, "Token has expired", e);
+            throw new ExpiredJwtException(null, null, "Token is expired", e);
         } catch (JwtException e) {
             // Ловим другие ошибки токена
             throw new JwtException("Invalid token: " + e.getMessage(), e);

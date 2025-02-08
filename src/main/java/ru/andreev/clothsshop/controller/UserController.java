@@ -36,11 +36,6 @@ public class UserController {
         return ResponseEntity.ok(registeredUser);
     }
 
-    @PutMapping("/admin/promote")
-    public ResponseEntity<User> promoteUserToAdmin(String email) {
-        User promotedUser = userService.makeAdmin(email);
-        return ResponseEntity.ok(promotedUser);
-    }
 
     @GetMapping("/check-email")
     public ResponseEntity<Boolean> checkEmailExists(@RequestParam String email) {
