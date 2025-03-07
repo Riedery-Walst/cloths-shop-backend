@@ -1,6 +1,9 @@
 package ru.andreev.clothsshop.controller;
 
-import org.springframework.web.bind.annotation.*;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
 import ru.andreev.clothsshop.model.Size;
 import ru.andreev.clothsshop.service.SizeService;
 

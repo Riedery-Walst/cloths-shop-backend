@@ -143,7 +143,7 @@ public class PaymentService {
         HttpEntity<Map<String, Object>> requestEntity = new HttpEntity<>(requestBody, headers);
 
         int maxRetries = 10;
-        long initialDelay = 1000;
+        long initialDelay = 3000;
         double backoffMultiplier = 2.0;
 
         for (int attempt = 0; attempt < maxRetries; attempt++) {
