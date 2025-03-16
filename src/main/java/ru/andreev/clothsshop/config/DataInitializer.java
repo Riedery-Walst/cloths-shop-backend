@@ -18,7 +18,6 @@ public class DataInitializer {
             String adminEmail = "admin@test.com";
             String adminPassword = "adminpassword";
 
-            // Проверяем, существует ли уже администратор
             if (!userRepository.existsByEmail(adminEmail)) {
                 User admin = new User();
                 admin.setEmail(adminEmail);
