@@ -19,10 +19,6 @@ public class Product {
     private double price;
     private int quantity;
 
-    @ManyToOne
-    @JoinColumn(name = "category_id")
-    private Category category;
-
     @ManyToMany
     @JoinTable(
             name = "product_colors",
@@ -39,8 +35,6 @@ public class Product {
     )
     private List<Size> sizes;
 
-    @ElementCollection
-    @CollectionTable(name = "product_photos", joinColumns = @JoinColumn(name = "product_id"))
-    @Column(name = "photo_url")
-    private List<String> photos;
+    @OneToMany(mappedBy = "product", cascade = CascadeType.ALL, orphanRemoval = true)
+    private List<ProductPhoto> photos;
 }

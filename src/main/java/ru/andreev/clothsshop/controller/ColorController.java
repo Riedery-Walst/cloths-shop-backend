@@ -1,8 +1,11 @@
 package ru.andreev.clothsshop.controller;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.web.bind.annotation.*;
-import ru.andreev.clothsshop.model.Color;
+import org.springframework.http.ResponseEntity;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RestController;
+import ru.andreev.clothsshop.dto.ColorDTO;
 import ru.andreev.clothsshop.service.ColorService;
 
 import java.util.List;
@@ -10,37 +13,20 @@ import java.util.List;
 @RestController
 @RequestMapping("/api/colors")
 public class ColorController {
+    private final ColorService colorService;
 
-    @Autowired
-    private ColorService colorService;
+    public ColorController(ColorService colorService) {
+        this.colorService = colorService;
+    }
 
-    // Получить все цвета
     @GetMapping
-    public List<Color> getAllColors() {
+    public List<ColorDTO> getAllColors() {
         return colorService.getAllColors();
     }
 
-    // Получить цвет по ID
     @GetMapping("/{id}")
-    public Color getColorById(@PathVariable Long id) {
-        return colorService.getColorById(id);
-    }
-
-    // Добавить новый цвет (доступно только для администраторов)
-    @PostMapping("/admin/add")
-    public Color addColor(@RequestBody Color color) {
-        return colorService.addColor(color);
-    }
-
-    // Обновить цвет (доступно только для администраторов)
-    @PutMapping("/admin/update/{id}")
-    public Color updateColor(@PathVariable Long id, @RequestBody Color updatedColor) {
-        return colorService.updateColor(id, updatedColor);
-    }
-
-    // Удалить цвет (доступно только для администраторов)
-    @DeleteMapping("/admin/delete/{id}")
-    public void deleteColor(@PathVariable Long id) {
-        colorService.deleteColor(id);
+    public ResponseEntity<ColorDTO> getColorById(@PathVariable Long id) {
+        ColorDTO color = colorService.getColorById(id);
+        return ResponseEntity.ok(color);
     }
 }

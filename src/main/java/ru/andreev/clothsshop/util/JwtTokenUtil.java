@@ -1,8 +1,6 @@
 package ru.andreev.clothsshop.util;
 
-import io.jsonwebtoken.Claims;
-import io.jsonwebtoken.Jwts;
-import io.jsonwebtoken.SignatureAlgorithm;
+import io.jsonwebtoken.*;
 import io.jsonwebtoken.security.Keys;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Component;
@@ -14,23 +12,30 @@ import java.util.function.Function;
 @Component
 public class JwtTokenUtil {
 
-    private final SecretKey key = Keys.secretKeyFor(SignatureAlgorithm.HS256);  // Генерация ключа
+    @Value("${jwt.secret}")
+    private String secret;
 
     @Value("${jwt.expirationMs}")
     private long jwtExpirationMs;
 
+    private SecretKey getKey() {
+        return Keys.hmacShaKeyFor(secret.getBytes());
+    }
+
     // Генерация JWT токена
-    public String generateToken(String username) {
+    public String generateToken(String email, String role) {
         return Jwts.builder()
-                .setSubject(username)
+                .setSubject(email)
+                .claim("role", role)
                 .setIssuedAt(new Date())
                 .setExpiration(new Date(System.currentTimeMillis() + jwtExpirationMs))
-                .signWith(key, SignatureAlgorithm.HS256)
+                .signWith(getKey(), SignatureAlgorithm.HS256)
                 .compact();
     }
 
-    // Извлечение имени пользователя из токена
-    public String extractUsername(String token) {
+
+    // Извлечение email из токена
+    public String extractEmail(String token) {
         return extractClaim(token, Claims::getSubject);
     }
 
@@ -47,7 +52,7 @@ public class JwtTokenUtil {
 
     // Проверка валидности токена
     public boolean validateToken(String token, String username) {
-        final String extractedUsername = extractUsername(token);
+        final String extractedUsername = extractEmail(token);
         return (extractedUsername.equals(username) && !isTokenExpired(token));
     }
 
@@ -56,6 +61,21 @@ public class JwtTokenUtil {
     }
 
     private Claims extractAllClaims(String token) {
-        return Jwts.parserBuilder().setSigningKey(key).build().parseClaimsJws(token).getBody();
+        try {
+            return Jwts.parserBuilder()
+                    .setSigningKey(getKey())
+                    .build()
+                    .parseClaimsJws(token)
+                    .getBody();
+        } catch (ExpiredJwtException e) {
+            // Бросаем исключение с более подробным сообщением
+            throw new ExpiredJwtException(null, null, "Token is expired", e);
+        } catch (JwtException e) {
+            // Ловим другие ошибки токена
+            throw new JwtException("Invalid token: " + e.getMessage(), e);
+        } catch (Exception e) {
+            // Логируем и выбрасываем любое другое исключение
+            throw new JwtException("Error parsing the token", e);
+        }
     }
 }

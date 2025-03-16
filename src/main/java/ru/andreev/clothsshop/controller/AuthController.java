@@ -1,44 +1,63 @@
 package ru.andreev.clothsshop.controller;
 
 
-import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.http.ResponseEntity;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
 import org.springframework.security.core.Authentication;
 import org.springframework.security.core.AuthenticationException;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.security.core.userdetails.UserDetails;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RestController;
-import ru.andreev.clothsshop.dto.LoginRequestDTO;
-import ru.andreev.clothsshop.dto.LoginResponseDTO;
+import org.springframework.web.bind.annotation.*;
+import ru.andreev.clothsshop.dto.CustomUserDetails;
+import ru.andreev.clothsshop.dto.LoginDTO;
+import ru.andreev.clothsshop.model.User;
 import ru.andreev.clothsshop.util.JwtTokenUtil;
+
+import java.util.Map;
 
 @RestController
 @RequestMapping("/api/auth")
 public class AuthController {
+    private final AuthenticationManager authenticationManager;
 
-    @Autowired
-    private AuthenticationManager authenticationManager;
+    private final JwtTokenUtil jwtTokenUtil;
 
-    @Autowired
-    private JwtTokenUtil jwtTokenUtil;
+    public AuthController(AuthenticationManager authenticationManager, JwtTokenUtil jwtTokenUtil) {
+        this.authenticationManager = authenticationManager;
+        this.jwtTokenUtil = jwtTokenUtil;
+    }
 
     // Логин и получение JWT токена
     @PostMapping("/login")
-    public LoginResponseDTO login(@RequestBody LoginRequestDTO loginRequestDTO) {
+    public ResponseEntity<?> authenticateUser(@RequestBody LoginDTO loginDTO) {
         try {
+            // Аутентификация пользователя через authenticationManager
             Authentication authentication = authenticationManager.authenticate(
-                    new UsernamePasswordAuthenticationToken(loginRequestDTO.getUsername(), loginRequestDTO.getPassword()));
+                    new UsernamePasswordAuthenticationToken(
+                            loginDTO.getEmail(),
+                            loginDTO.getPassword()
+                    )
+            );
 
-            UserDetails userDetails = (UserDetails) authentication.getPrincipal();
-            String jwt = jwtTokenUtil.generateToken(userDetails.getUsername());
+            // Извлекаем кастомные данные пользователя
+            CustomUserDetails customUserDetails = (CustomUserDetails) authentication.getPrincipal();
+            User user = customUserDetails.getUser();
 
-            return new LoginResponseDTO(jwt);
+            // Генерация JWT токена с ролью пользователя
+            String token = jwtTokenUtil.generateToken(user.getEmail(), user.getRole().name());
 
+            return ResponseEntity.ok(Map.of("token", token));
         } catch (AuthenticationException e) {
-            throw new RuntimeException("Invalid login credentials");
+            return ResponseEntity.status(401).body("Invalid email or password");
         }
+    }
+
+    @GetMapping("/validate-token")
+    public ResponseEntity<?> validateToken(@AuthenticationPrincipal UserDetails userDetails) {
+        if (userDetails != null) {
+            return ResponseEntity.ok("Token is valid");
+        }
+        return ResponseEntity.status(401).body("Token is invalid or expired");
     }
 }
